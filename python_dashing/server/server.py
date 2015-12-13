@@ -186,6 +186,10 @@ class Server(object):
             else:
                 raise abort(404)
 
+        @app.route('/')
+        def index():
+            return render_template('index.html')
+
         for dashboard in self.dashboards.values():
             def create_view(dashboard):
                 def view():
