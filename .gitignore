@@ -6,3 +6,6 @@ dist/
 .tox/
 docs/sphinx/_build
 docs/sphinx/venv
+/.idea
+/node_modules/
+js-build/
