@@ -9,7 +9,7 @@ from python_dashing.importer import import_module
 from input_algorithms.dictobj import dictobj
 from input_algorithms.meta import Meta
 
-from option_merge.collector import Collector
+from option_merge.collector import Collector as CollectorBase
 from option_merge import MergedOptions
 from option_merge import Converter
 
@@ -20,7 +20,7 @@ import os
 
 log = logging.getLogger("python_dashing.collector")
 
-class Collector(Collector):
+class Collector(CollectorBase):
 
     BadFileErrorKls = BadYaml
     BadConfigurationErrorKls = BadConfiguration

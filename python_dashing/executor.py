@@ -8,12 +8,12 @@ from python_dashing.actions import available_actions
 from python_dashing.collector import Collector
 from python_dashing.errors import BadTask
 
-from delfick_app import App
+from delfick_app import App as DelfickApp
 import logging
 
 log = logging.getLogger("python_dashing.executor")
 
-class App(App):
+class App(DelfickApp):
     cli_categories = ['python_dashing']
     cli_description = "Application that reads YAML and serves up pretty dashboards"
     cli_environment_defaults = {"PYTHON_DASHING_CONFIG": ("--config", 'python_dashing.yml')}
