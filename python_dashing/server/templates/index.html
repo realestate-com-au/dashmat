@@ -4,6 +4,14 @@
 </head>
 <body>
     <div id="page-content"></div>
-    <script>main.default()</script>
+    <script>
+        main.default({
+            rows: [{
+                modules: [
+                    {'id': 'test', 'type': 'Number',}
+                ]
+            }]
+        });
+    </script>
 </body>
 </html>

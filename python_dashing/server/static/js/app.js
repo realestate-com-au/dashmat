@@ -2,9 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Dashboard from './components/Dashboard.jsx';
 
-export default () => {
-  console.log('test');
-  const element = React.createElement(Dashboard);
+export default (config) => {
+  const element = React.createElement(Dashboard, config);
   ReactDOM.render(element, document.getElementById('page-content'));
-  console.log(document.getElementById('page-content'));
 }
