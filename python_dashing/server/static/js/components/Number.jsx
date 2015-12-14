@@ -1,5 +1,5 @@
 import React, {Component, PropTypes} from 'react';
-import styles from './Number.scss';
+import styles from './Number.css';
 import ModuleBox from './ModuleBox.jsx';
 
 export default class Number extends Component {

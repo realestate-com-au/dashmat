@@ -1,5 +1,5 @@
 import React, {Component, PropTypes} from 'react';
-import styles from './Dashboard.scss';
+import styles from './Dashboard.css';
 
 export default class ModuleBox extends Component {
   render() {

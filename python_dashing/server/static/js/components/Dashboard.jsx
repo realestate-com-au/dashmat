@@ -1,6 +1,6 @@
 import React, {Component, PropTypes} from 'react';
 import Number from './Number.jsx';
-import styles from './Dashboard.scss';
+import styles from './Dashboard.css';
 
 export class Module extends Component {
   render() {

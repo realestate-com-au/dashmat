@@ -1,0 +1,22 @@
+
+.container {
+  /* Make the content in the middle */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.heading {
+  font-size: 38px;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+}
+
+.value {
+  color: white;
+  font-size: 55px;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
