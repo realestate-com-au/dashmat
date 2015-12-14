@@ -1,20 +1,31 @@
 import React, {Component, PropTypes} from 'react';
+import Number from './Number.jsx';
+import styles from './Dashboard.scss';
 
 export class Module extends Component {
   render() {
-    return (<div>{this.props.id}</div>);
+    const type = this.props.type;
+    if (type == 'Number') {
+      return (<Number {...this.props} />);
+    }
+    return (<div className={styles.module}>{this.props.id}</div>);
   }
 }
+
+Module.propTypes = {
+  type: PropTypes.string,
+  id: PropTypes.string,
+};
 
 export class Row extends Component {
   render() {
     const modules = this.props.modules.map(module => {
       return (
-        <div key={module.id}>{module.type}</div>
+        <Module key={module.id} {...module} />
       );
     });
     return (
-      <div class="row">
+      <div className={styles.row}>
         {modules}
       </div>
     )
@@ -33,13 +44,12 @@ Row.propTypes = {
 
 export default class Dashboard extends Component {
   render() {
-    const rows = this.props.rows.map(row => {
-      return (<Row modules={row.modules}/>);
+    const rows = this.props.rows.map((row, idx) => {
+      return (<Row key={idx} modules={row.modules}/>);
     });
 
     return (
-      <div>
-        <h1>Hello World</h1>
+      <div className={styles.dashboard}>
         {rows}
       </div>
     );
