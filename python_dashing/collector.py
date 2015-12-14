@@ -79,7 +79,7 @@ class Collector(CollectorBase):
                 return converter
             configuration.add_converter(Converter(convert=make_converter(thing), convert_path=[thing]))
 
-        if "modules" in configuration and type(configuration["modules"] is dict):
+        if "modules" in configuration and type(configuration["modules"]) is dict:
             found = {}
             first_pass_imported = {}
             for module_options in configuration["modules"].values():
