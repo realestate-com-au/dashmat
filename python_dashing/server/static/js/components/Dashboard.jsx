@@ -48,7 +48,7 @@ Row.propTypes = {
 export default class Dashboard extends Component {
   render() {
     const rows = this.props.rows.map((row, idx) => {
-      return (<Row key={idx} modules={row.modules}/>);
+      return (<Row key={idx} modules={row}/>);
     });
 
     return (
@@ -61,6 +61,6 @@ export default class Dashboard extends Component {
 
 Dashboard.propTypes = {
   rows: PropTypes.arrayOf(
-    PropTypes.shape(Row.PropTypes)
+    Row.propTypes['modules']
   ).isRequired,
 };

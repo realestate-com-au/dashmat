@@ -1,24 +1,13 @@
 <html>
 <head>
+    <title>{{ title }}</title>
     <script src="/static/js-build/bundle.js"></script>
 </head>
 <body>
     <div id="page-content"></div>
     <script>
-        main.default({
-            rows: [{
-                modules: [
-                    {
-                      'id': 'test',
-                      'type': 'Number',
-                      'title': 'Test',
-                      'value': 123,
-                    },
-                    {'id': 'test2', 'type': 'Test',},
-                    {'id': 'test3', 'type': 'Test',},
-                ]
-            }]
-        });
+
+        main.default({{ config|tojson|safe }});
     </script>
 </body>
 </html>

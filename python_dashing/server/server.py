@@ -13,9 +13,7 @@ from jinja2 import Environment
 from textwrap import dedent
 import pkg_resources
 import threading
-import tempfile
 import logging
-import shutil
 import time
 import os
 
@@ -186,41 +184,15 @@ class Server(object):
             else:
                 raise abort(404)
 
-        @app.route('/')
-        def index():
-            return render_template('index.html')
-
-        for dashboard in self.dashboards.values():
-            def create_view(dashboard):
-                def view():
-                    tmp = None
-                    activated_clients = {}
-                    try:
-                        tmp = tempfile.mkdtemp()
-                        env = Environment(loader=FileSystemLoader(tmp))
-                        env.add_extension('pyjade.ext.jinja.PyJadeExtension')
-                        self.setup_jinja_env(env, dashboard, activated_clients)
-
-                        with open(os.path.join(tmp, "template.jade"), 'w') as fle:
-                            fle.write(dashboard.jade)
-                        template = env.get_template("template.jade")
-                        main = template.render()
-                    finally:
-                        if tmp and os.path.exists(tmp):
-                            shutil.rmtree(tmp)
-
-                    module_css = []
-                    module_javascript = []
-                    for name, client in activated_clients.items():
-                        for c in client.css:
-                            module_css.append("module/{0}/{1}".format(name, c))
-                        for j in client.javascript:
-                            module_javascript.append("module/{0}/{1}".format(name, j))
-                        module_javascript.append("module_registration/{0}.js".format(name))
-                    return render_template("dashboard.jade", module_css=module_css, module_js=module_javascript, main=main)
-                view.__name__ = "{0}_view".format(dashboard.path.replace("/", "_"))
-                return view
-            app.route(dashboard.path, methods = ['GET'])(create_view(dashboard))
+        @app.route('/<name>')
+        def dashboard(name):
+            if not name in self.dashboards:
+                raise abort(404)
+            config = {
+                'rows': self.dashboards[name]
+            }
+            title = name.replace('_', ' ').title()
+            return render_template('index.html', config=config, title=title)
 
         for name, module in self.modules.items():
             for route, view_function in servers[name].routes:

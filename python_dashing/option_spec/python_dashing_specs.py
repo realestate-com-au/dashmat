@@ -15,10 +15,10 @@ from input_algorithms.dictobj import dictobj
 
 import six
 
-class Dashboard(dictobj):
+class DashboardSlot(dictobj):
     fields = {
-          'path': "Path to the dashboard"
-        , 'jade': "The body for this dashboard"
+          'type': "Type of module (JS class name)"
+        , 'title': "The title of the module"
         }
 
 class PythonDashing(dictobj):
@@ -41,14 +41,6 @@ class ModuleOptions(dictobj):
         , "import_path": "Import path to the module to load"
         , "server_options": "Options to pass into creating the Server class"
         }
-
-class dashboard_spec(Spec):
-    def normalise(self, meta, val):
-        path = meta.key_names()["_key_name_0"]
-        return create_spec(Dashboard
-            , path = overridden(path)
-            , jade = formatted(string_spec(), formatter=MergedOptionStringFormatter)
-            ).normalise(meta, val)
 
 class PythonDashingSpec(object):
     """Knows about python_dashing specific configuration"""
@@ -93,4 +85,14 @@ class PythonDashingSpec(object):
 
     @property
     def dashboards_spec(self):
-        return dictof(string_spec(), dashboard_spec())
+        return dictof(
+            # key is name
+            string_spec(),
+            # Value is 2d array of slots
+            listof(listof(
+                create_spec(DashboardSlot
+                    , type = required(string_spec())
+                    , title = string_spec()
+                    )
+            ))
+        )
