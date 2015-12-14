@@ -1,27 +1,30 @@
 import React, {Component, PropTypes} from 'react';
+import ModuleBox from './ModuleBox.jsx';
 import Number from './Number.jsx';
 import styles from './Dashboard.css';
 
-export class Module extends Component {
+export class ModuleLoader extends Component {
   render() {
     const type = this.props.type;
+    // TODO: Load dynamically
     if (type == 'Number') {
       return (<Number {...this.props} />);
     }
-    return (<div className={styles.module}>{this.props.id}</div>);
+    return (<ModuleBox>Unknown module type {this.props.type}</ModuleBox>);
   }
 }
 
-Module.propTypes = {
-  type: PropTypes.string,
-  id: PropTypes.string,
+ModuleLoader.propTypes = {
+  type: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  data: PropTypes.any,
 };
 
 export class Row extends Component {
   render() {
     const modules = this.props.modules.map(module => {
       return (
-        <Module key={module.id} {...module} />
+        <ModuleLoader key={module.id} {...module} />
       );
     });
     return (
@@ -38,7 +41,7 @@ Row.propTypes = {
       type: PropTypes.string,
       id: PropTypes.string,
     })
-  ),
+  ).isRequired,
 };
 
 
@@ -59,5 +62,5 @@ export default class Dashboard extends Component {
 Dashboard.propTypes = {
   rows: PropTypes.arrayOf(
     PropTypes.shape(Row.PropTypes)
-  ),
+  ).isRequired,
 };
