@@ -5,9 +5,9 @@ import ModuleBox from './ModuleBox.jsx';
 export default class Number extends Component {
   render() {
     return (
-      <ModuleBox color="#3498db">
+      <ModuleBox color="#3498db" className={styles.container}>
         <h1 className={styles.heading}>{this.props.title}</h1>
-        <span className={styles.value}>{this.props.value}</span>
+        <span className={styles.value}>{this.props.data}</span>
       </ModuleBox>
     );
   }
@@ -15,6 +15,6 @@ export default class Number extends Component {
 
 Number.propTypes = {
   id: PropTypes.string,
-  value: PropTypes.number,
+  data: PropTypes.number,
   title: PropTypes.string,
 };

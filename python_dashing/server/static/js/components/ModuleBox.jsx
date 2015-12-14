@@ -6,11 +6,16 @@ export default class ModuleBox extends Component {
     const style = {
       backgroundColor: this.props.color,
     };
-    return <div className={styles.module} style={style}>{this.props.children}</div>;
+    let className = styles.module;
+    if (this.props.className) {
+      className += ' ' + this.props.className;
+    }
+    return <div className={className} style={style}>{this.props.children}</div>;
   }
 }
 
 ModuleBox.propTypes = {
   children: PropTypes.array,
   color: PropTypes.string,
+  className: PropTypes.string,
 };
