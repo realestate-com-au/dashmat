@@ -1,0 +1,15 @@
+dashboards:
+  mything:
+    -
+      - type: Number
+        title: YAML test
+      - type: aaa
+      - type: Number
+        title: Random
+    -
+      - type: Number
+        title: another thing
+
+modules:
+  kms_secrets:
+    import_path: python_dashing.core_modules.amazon_base.main:AmazonBase
