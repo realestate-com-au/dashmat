@@ -2,35 +2,16 @@ import React, {Component, PropTypes} from 'react';
 import WidgetBox from './WidgetBox.jsx';
 import Number from './Number.jsx';
 import styles from './Dashboard.css';
-import callAjax from '../utils.js';
+import {resolve} from '../utils.js';
 
 export class WidgetLoader extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {data: null}
-  }
-
-  loadData() {
-    callAjax('/data/' + this.props.module, (data) => {
-      data = JSON.parse(data);
-      this.setState({data: data});
-    })
-  }
-
-  componentDidMount() {
-    if (this.props.module) {
-      setInterval(this.loadData.bind(this), 5000);
-      this.loadData();
-    }
-  }
-
   render() {
     const type = this.props.type;
     const widgetProps = {
-      data: this.state.data,
+      data: this.props.data,
       options: this.props.options,
       title: this.props.title,
-    }
+    };
     // TODO: Load dynamically
     if (type == 'Number') {
       return (<Number {...widgetProps} />);
@@ -42,15 +23,40 @@ export class WidgetLoader extends Component {
 WidgetLoader.propTypes = {
   type: PropTypes.string.isRequired,
   title: PropTypes.string,
-  module: PropTypes.string,
   options: PropTypes.object,
+  data: PropTypes.any,
+  // Actually used in Dashboard, not here
+  datasource: PropTypes.string,
 };
 
 export default class Dashboard extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {data: {}};
+  }
+
+  loadData() {
+    fetch('/data')
+      .then(data => data.json())
+      .then(data => {
+        this.setState({data: data});
+      })
+  }
+
+  componentDidMount() {
+    // Poll every 5 seconds for data
+    setInterval(this.loadData.bind(this), 5000);
+    this.loadData();
+  }
+
   render() {
     const modules = this.props.widgets.map((widget, idx) => {
+      let data = null;
+      if (widget.datasource) {
+        data = resolve(this.state.data, widget.datasource);
+      }
       return (
-        <WidgetLoader key={idx} {...widget} />
+        <WidgetLoader key={idx} data={data} {...widget} />
       );
     });
     return (

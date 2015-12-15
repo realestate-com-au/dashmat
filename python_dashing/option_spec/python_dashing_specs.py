@@ -18,8 +18,8 @@ import six
 class DashboardSlot(dictobj):
     fields = {
           'type': "Type of module (JS class name)"
-        , 'title': "The title of the module"
-        , 'module': "The module to load data from"
+        , 'title': "The title of the widget"
+        , 'datasource': "The module to load data from"
         }
 
 class PythonDashing(dictobj):
@@ -94,7 +94,7 @@ class PythonDashingSpec(object):
                 create_spec(DashboardSlot
                     , type = required(string_spec())
                     , title = string_spec()
-                    , module = string_spec()
+                    , datasource = string_spec()
                     )
             )
         )
