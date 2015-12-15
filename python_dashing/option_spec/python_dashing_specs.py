@@ -90,11 +90,11 @@ class PythonDashingSpec(object):
             # key is name
             string_spec(),
             # Value is 2d array of slots
-            listof(listof(
+            listof(
                 create_spec(DashboardSlot
                     , type = required(string_spec())
                     , title = string_spec()
                     , module = string_spec()
                     )
-            ))
+            )
         )

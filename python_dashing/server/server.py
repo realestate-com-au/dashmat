@@ -155,7 +155,7 @@ class Server(object):
             if not name in self.dashboards:
                 raise abort(404)
             config = {
-                'rows': self.dashboards[name]
+                'widgets': self.dashboards[name]
             }
             title = name.replace('_', ' ').title()
             return render_template('index.html', config=config, title=title)

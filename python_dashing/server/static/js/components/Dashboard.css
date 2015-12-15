@@ -1,13 +1,8 @@
-.board {
-  margin: 0;
-  padding: 0;
-}
-
-.row {
+.dashboard {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: flex-start;
 
   margin: 0;
@@ -15,9 +10,11 @@
 }
 
 .widget {
+  flex-grow: 1;
   background-color: #e67e22;
-  width: 300px;
-  height: 360px;
+  min-width: 300px;
+  max-width: 600px;
+  min-height: 360px;
   margin: 5px;
   padding: 0;
 }
@@ -25,4 +22,8 @@
 body:global {
   background-color: #222222;
   font-family: 'Open Sans', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
 }
+
