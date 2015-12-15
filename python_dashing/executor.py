@@ -77,12 +77,6 @@ class App(DelfickApp):
             , **defaults['--artifact']
             )
 
-        parser.add_argument("--redis-host"
-            , help = "Host where redis is"
-            , dest = "python_dashing_redis_host"
-            , default = "localhost"
-            )
-
         parser.add_argument("--without-checks"
             , help = "Don't run the cronned checks, useful for development"
             , dest = "python_dashing_without_checks"

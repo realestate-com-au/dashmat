@@ -3,8 +3,6 @@ from python_dashing.errors import MissingModule
 
 import pkg_resources
 import logging
-import redis
-import json
 import os
 
 log = logging.getLogger("python_dashing.core_modules.base")
@@ -65,8 +63,8 @@ class Module(object):
     def javascript(self):
         return []
 
-    def make_server(self, redis_host, server_kwargs):
-        return self.server_kls(self, redis_host, **server_kwargs)
+    def make_server(self, server_kwargs):
+        return self.server_kls(self, **server_kwargs)
 
     def make_client(self, client_kwargs):
         return self.client_kls(self, **client_kwargs)
@@ -99,29 +97,14 @@ class ClientBase(object):
         return self.module.javascript
 
 class ServerBase(object):
-    def __init__(self, module, redis_host, **kwargs):
+    def __init__(self, module, **kwargs):
         self.module = module
         self.data = {}
-        self.redis_host = redis_host
 
         self.setup(**kwargs)
 
-    @property
-    def redis(self):
-        if not getattr(self, "_redis", None):
-            self._redis = redis.Redis(self.redis_host)
-        return self._redis
-
     def setup(self, **kwargs):
         pass
-
-    @property
-    def routes(self):
-        return []
-
-    @property
-    def update_registration(self):
-        return []
 
     @property
     def register_checks(self):
@@ -130,31 +113,4 @@ class ServerBase(object):
     def run_check(self, func, *args, **kwargs):
         for key, value in func(*args, **kwargs):
             self.data[key] = value
-    def add_to_list(self, key, **kwargs):
-        key = "python_dashing:{0}:{1}".format(self.module.name, key)
-        self.redis.rpush(key, json.dumps(kwargs))
-        length = self.redis.llen(key)
-        start = 0 if length - 20 < 0 else length - 20
-        self.redis.ltrim(key, start, length)
-        log.info("Recorded data for {0}".format(key))
-        log.debug(kwargs)
-
-    def get_list(self, key):
-        key = "python_dashing:{0}:{1}".format(self.module.name, key)
-        return [json.loads(r) for r in self.redis.lrange(key, 0, self.redis.llen(key))]
-
-    def set_string(self, key, val):
-        self.redis.set(key, val)
-
-    def get_string(self, key):
-        return self.redis.get(key)
-
-    def set_data(self, key, val):
-        self.redis.hmset(key, val)
-
-    def get_data(self, key):
-        return self.redis.hgetall(key)
-
-    def delete(self, key):
-        return self.redis.delete(key)
 

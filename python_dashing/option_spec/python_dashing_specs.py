@@ -31,7 +31,6 @@ class PythonDashing(dictobj):
         , "extra": "Sets the ``$@`` variable. Alternatively specify these after a ``--`` on the commandline"
         , "artifact": "Arbitrary argument"
         , "config": "The config filename"
-        , "redis_host": "The host where redis is"
         , "allowed_static_folders": "The folders we're allowed to use as static folders"
         , "without_checks": "Whether to run the cronned checks or not"
         }
@@ -57,7 +56,6 @@ class PythonDashingSpec(object):
             , extra = defaulted(formatted_string(), "")
             , debug = defaulted(boolean(), False)
             , dry_run = defaulted(boolean(), False)
-            , redis_host = defaulted(formatted_string(), "")
             , artifact = formatted_string()
             , allowed_static_folders = listof(formatted_string())
             , without_checks = defaulted(boolean(), False)

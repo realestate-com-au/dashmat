@@ -17,4 +17,3 @@ class Server(ServerBase):
 
     def make_stats(self, time):
         yield 'value', random.randint(1, 1000)
-        #self.set_string('data', json.dumps(data))

@@ -13,7 +13,6 @@ setup(
       , "input_algorithms==0.4.5.1"
 
       , "six"
-      , "redis"
       , "croniter"
       , "requests"
       , "slumber"

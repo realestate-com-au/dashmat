@@ -55,7 +55,6 @@ def serve(collector):
           python_dashing.host
         , python_dashing.port
         , python_dashing.debug
-        , python_dashing.redis_host
         , dashboards
         , modules
         , module_options
@@ -95,7 +94,7 @@ def run_checks(collector):
     for name, module in modules.items():
         if chosen is None or name == chosen:
             log.info("Making server for {0} module".format(name))
-            server = modules[name].make_server(collector.configuration['python_dashing'].redis_host, module_options[name].server_options)
+            server = modules[name].make_server(module_options[name].server_options)
             scheduler.register(server, name)
 
     scheduler.run(force=True)

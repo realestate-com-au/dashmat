@@ -23,13 +23,12 @@ here = os.path.dirname(__file__)
 
 
 class Server(object):
-    def __init__(self, host, port, debug, redis_host, dashboards, modules, module_options, allowed_static_folders, templates_by_module, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, templates_by_module, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
         self.port = port
         self.modules = modules
-        self.redis_host = redis_host
         self.dashboards = dashboards
         self.module_options = module_options
         self.without_checks = without_checks
@@ -89,7 +88,7 @@ class Server(object):
 
             servers = {}
             for name, module in list(self.modules.items()):
-                servers[name] = module.make_server(self.redis_host, self.module_options[name].server_options)
+                servers[name] = module.make_server(self.module_options[name].server_options)
 
             scheduler = Scheduler()
             if not self.without_checks:
