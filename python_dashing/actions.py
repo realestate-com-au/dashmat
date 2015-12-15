@@ -1,5 +1,5 @@
-from python_dashing.option_spec.cronned_checks import CronnedChecks
 from python_dashing.server.server import Server
+from python_dashing.scheduler import Scheduler
 
 from input_algorithms.spec_base import NotSpecified
 from collections import namedtuple
@@ -90,11 +90,13 @@ def run_checks(collector):
     modules = collector.configuration["__active_modules__"]
     module_options = collector.configuration["modules"]
 
+    scheduler = Scheduler()
+
     for name, module in modules.items():
         if chosen is None or name == chosen:
             log.info("Making server for {0} module".format(name))
             server = modules[name].make_server(collector.configuration['python_dashing'].redis_host, module_options[name].server_options)
-            registered = list(server.register_checks)
-            if registered:
-                CronnedChecks(registered, module_name=name).run(force=True)
+            scheduler.register(server, name)
+
+    scheduler.run(force=True)
 

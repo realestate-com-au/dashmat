@@ -1,16 +1,15 @@
-from python_dashing.option_spec.cronned_checks import CronnedChecks
 from python_dashing.jinja_filters import jinja_filters
+from python_dashing.scheduler import Scheduler
 
 from tornado.httpserver import HTTPServer
 from tornado.wsgi import WSGIContainer
 from tornado.ioloop import IOLoop
 
-from flask import send_from_directory, render_template, Response, abort
+from flask import send_from_directory, render_template, abort
 from flask import Flask
 
 from jinja2.loaders import FileSystemLoader
 from jinja2 import Environment
-from textwrap import dedent
 import pkg_resources
 import threading
 import logging
@@ -21,6 +20,7 @@ import os
 log = logging.getLogger("python_dashing.server")
 
 here = os.path.dirname(__file__)
+
 
 class Server(object):
     def __init__(self, host, port, debug, redis_host, dashboards, modules, module_options, allowed_static_folders, templates_by_module, without_checks):
@@ -56,22 +56,16 @@ class Server(object):
         finally:
             self.thread_stopper["finished"] = True
 
-    def start_checks(self, checks, thread_stopper):
+    def start_checks(self, scheduler, thread_stopper):
         first_run = True
         while True:
             if thread_stopper['finished']:
                 break
 
             try:
-                for name, cronned_checks in checks.items():
-                    try:
-                        cronned_checks.run(force=first_run)
-                    except Exception as error:
-                        log.error("Failed to run a check for module {0}".format(name))
-                        log.exception(error)
-            except Exception as error:
-                log.error("Failed to do a for loop....")
-                log.exception(error)
+                scheduler.run(force=first_run)
+            except Exception:
+                log.exception("Failed to run scheduler")
 
             first_run = False
             time.sleep(5)
@@ -97,14 +91,12 @@ class Server(object):
             for name, module in list(self.modules.items()):
                 servers[name] = module.make_server(self.redis_host, self.module_options[name].server_options)
 
-            checks = {}
+            scheduler = Scheduler()
             if not self.without_checks:
                 for name, server in servers.items():
-                    registered = list(server.register_checks)
-                    if registered:
-                        checks[name] = CronnedChecks(registered, module_name=name)
+                    scheduler.register(name, server)
 
-            checks_thread = threading.Thread(target=self.start_checks, args=(checks, self.thread_stopper, ))
+            checks_thread = threading.Thread(target=self.start_checks, args=(scheduler, self.thread_stopper, ))
             checks_thread.daemon = True
             checks_thread.start()
 
