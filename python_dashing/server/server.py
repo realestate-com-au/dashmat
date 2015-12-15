@@ -57,6 +57,7 @@ class Server(object):
             self.thread_stopper["finished"] = True
 
     def start_checks(self, checks, thread_stopper):
+        first_run = True
         while True:
             if thread_stopper['finished']:
                 break
@@ -64,7 +65,7 @@ class Server(object):
             try:
                 for name, cronned_checks in checks.items():
                     try:
-                        cronned_checks.run()
+                        cronned_checks.run(force=first_run)
                     except Exception as error:
                         log.error("Failed to run a check for module {0}".format(name))
                         log.exception(error)
@@ -72,6 +73,7 @@ class Server(object):
                 log.error("Failed to do a for loop....")
                 log.exception(error)
 
+            first_run = False
             time.sleep(5)
 
     def template_folders_for(self, module):
@@ -102,16 +104,6 @@ class Server(object):
                     if registered:
                         checks[name] = CronnedChecks(registered, module_name=name)
 
-            def first_run(checks):
-                for name in checks:
-                    try:
-                        checks[name].run(force=True)
-                    except Exception as error:
-                        log.error("Failed first run of checks for module {0}".format(name))
-                        log.exception(error)
-            thread = threading.Thread(target=first_run, args=(checks, ))
-            thread.daemon = True
-            thread.start()
 
             checks_thread = threading.Thread(target=self.start_checks, args=(checks, self.thread_stopper, ))
             checks_thread.daemon = True
