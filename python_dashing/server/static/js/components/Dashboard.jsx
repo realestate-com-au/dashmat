@@ -19,7 +19,7 @@ WidgetLoader.propTypes = {
   data: PropTypes.any,
 };
 
-export class Row extends Component {
+export default class Dashboard extends Component {
   render() {
     const modules = this.props.widgets.map((widget, idx) => {
       return (
@@ -27,38 +27,17 @@ export class Row extends Component {
       );
     });
     return (
-      <div className={styles.row}>
+      <div className={styles.dashboard}>
         {modules}
       </div>
     )
   }
 }
 
-Row.propTypes = {
+Dashboard.propTypes = {
   widgets: PropTypes.arrayOf(
     PropTypes.shape({
       type: PropTypes.string,
     })
-  ).isRequired,
-};
-
-
-export default class Dashboard extends Component {
-  render() {
-    const rows = this.props.rows.map((row, idx) => {
-      return (<Row key={idx} widgets={row}/>);
-    });
-
-    return (
-      <div className={styles.dashboard}>
-        {rows}
-      </div>
-    );
-  }
-}
-
-Dashboard.propTypes = {
-  rows: PropTypes.arrayOf(
-    Row.propTypes['widgets']
   ).isRequired,
 };
