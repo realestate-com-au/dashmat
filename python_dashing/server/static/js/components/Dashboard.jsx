@@ -27,7 +27,7 @@ export default class Dashboard extends Component {
       );
     });
     return (
-      <div className={styles.row}>
+      <div className={styles.dashboard}>
         {modules}
       </div>
     )
@@ -35,10 +35,9 @@ export default class Dashboard extends Component {
 }
 
 Dashboard.propTypes = {
-  rows: PropTypes.arrayOf(
+  widgets: PropTypes.arrayOf(
     PropTypes.shape({
       type: PropTypes.string,
-      id: PropTypes.string,
     })
   ).isRequired,
 };
