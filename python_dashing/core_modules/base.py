@@ -130,7 +130,6 @@ class ServerBase(object):
         self.redis.rpush(key, json.dumps(kwargs))
         length = self.redis.llen(key)
         start = 0 if length - 20 < 0 else length - 20
-        start = 0 if length - 20 < 0 else length - 20
         self.redis.ltrim(key, start, length)
         log.info("Recorded data for {0}".format(key))
         log.debug(kwargs)
