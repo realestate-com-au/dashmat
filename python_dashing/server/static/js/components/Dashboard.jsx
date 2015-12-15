@@ -23,7 +23,6 @@ ModuleLoader.propTypes = {
 export default class Dashboard extends Component {
   render() {
     const modules = this.props.rows.map(module => {
-      module = module[0];// todo: this should not be here
       return (
         <ModuleLoader key={module.id} {...module} />
       );
