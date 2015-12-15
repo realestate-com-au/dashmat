@@ -1,5 +1,6 @@
 from python_dashing.core_modules.base import ServerBase
 from python_dashing.core_modules.base import Module as ModuleBase
+import random
 
 
 class Module(ModuleBase):
@@ -15,6 +16,6 @@ class Server(ServerBase):
         yield "*/5 * * * *",  self.make_stats
 
     def make_stats(self, time):
-        data = 444
+        data = random.randint(1, 1000)
         self.data = data
         #self.set_string('data', json.dumps(data))
