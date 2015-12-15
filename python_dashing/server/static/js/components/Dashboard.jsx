@@ -20,40 +20,18 @@ ModuleLoader.propTypes = {
   data: PropTypes.any,
 };
 
-export class Row extends Component {
+export default class Dashboard extends Component {
   render() {
-    const modules = this.props.modules.map(module => {
+    const modules = this.props.rows.map(module => {
+      module = module[0];// todo: this should not be here
       return (
         <ModuleLoader key={module.id} {...module} />
       );
     });
-    return (
-      <div className={styles.row}>
-        {modules}
-      </div>
-    )
-  }
-}
-
-Row.propTypes = {
-  modules: PropTypes.arrayOf(
-    PropTypes.shape({
-      type: PropTypes.string,
-      id: PropTypes.string,
-    })
-  ).isRequired,
-};
-
-
-export default class Dashboard extends Component {
-  render() {
-    const rows = this.props.rows.map((row, idx) => {
-      return (<Row key={idx} modules={row}/>);
-    });
 
     return (
       <div className={styles.dashboard}>
-        {rows}
+        {modules}
       </div>
     );
   }
@@ -61,6 +39,9 @@ export default class Dashboard extends Component {
 
 Dashboard.propTypes = {
   rows: PropTypes.arrayOf(
-    Row.propTypes['modules']
+    PropTypes.shape({
+      type: PropTypes.string,
+      id: PropTypes.string,
+    })
   ).isRequired,
 };
