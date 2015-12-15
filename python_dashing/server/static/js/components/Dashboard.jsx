@@ -19,7 +19,7 @@ export class WidgetLoader extends Component {
 
   componentDidMount() {
     if (this.props.module) {
-      setTimeout(this.loadData.bind(this), 5000);
+      setInterval(this.loadData.bind(this), 5000);
       this.loadData();
     }
   }
