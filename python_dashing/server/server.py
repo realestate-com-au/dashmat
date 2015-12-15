@@ -94,7 +94,7 @@ class Server(object):
             scheduler = Scheduler()
             if not self.without_checks:
                 for name, server in servers.items():
-                    scheduler.register(name, server)
+                    scheduler.register(server, name)
 
             checks_thread = threading.Thread(target=self.start_checks, args=(scheduler, self.thread_stopper, ))
             checks_thread.daemon = True
