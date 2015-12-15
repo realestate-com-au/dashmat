@@ -9,15 +9,14 @@
   padding: 0;
 }
 
-.module {
-  flex-grow: 2;
+.widget {
+  flex-grow: 1;
   background-color: #e67e22;
   min-width: 300px;
   max-width: 600px;
   min-height: 360px;
   margin: 5px;
   padding: 0;
-
 }
 
 body:global {

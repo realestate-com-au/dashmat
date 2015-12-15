@@ -1,12 +1,12 @@
 import React, {Component, PropTypes} from 'react';
 import styles from './Dashboard.css';
 
-export default class ModuleBox extends Component {
+export default class WidgetBox extends Component {
   render() {
     const style = {
       backgroundColor: this.props.color,
     };
-    let className = styles.module;
+    let className = styles.widget;
     if (this.props.className) {
       className += ' ' + this.props.className;
     }
@@ -14,7 +14,7 @@ export default class ModuleBox extends Component {
   }
 }
 
-ModuleBox.propTypes = {
+WidgetBox.propTypes = {
   children: PropTypes.array,
   color: PropTypes.string,
   className: PropTypes.string,
