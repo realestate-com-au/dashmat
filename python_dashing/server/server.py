@@ -104,7 +104,6 @@ class Server(object):
                     if registered:
                         checks[name] = CronnedChecks(registered, module_name=name)
 
-
             checks_thread = threading.Thread(target=self.start_checks, args=(checks, self.thread_stopper, ))
             checks_thread.daemon = True
             checks_thread.start()
@@ -157,8 +156,7 @@ class Server(object):
         def module_data(name):
             if not name in self.modules:
                 raise abort(404)
-            server = servers[name]
-            return json.dumps(server.data)
+            return json.dumps(servers[name].data)
 
         @app.route('/<name>')
         def dashboard(name):
