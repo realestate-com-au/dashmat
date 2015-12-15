@@ -4,7 +4,7 @@ from python_dashing import VERSION
 setup(
       name = "python-dashing"
     , version = VERSION
-    , packages = ['python_dashing'] + ['python_dashing.%s' % pkg for pkg in find_packages('python_dashing')]
+    , packages = find_packages('python_dashing', exclude=['tests'])
     , include_package_data = True
 
     , install_requires =
