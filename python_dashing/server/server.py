@@ -13,8 +13,8 @@ from jinja2 import Environment
 import pkg_resources
 import threading
 import logging
+import flask
 import time
-import json
 import os
 
 log = logging.getLogger("python_dashing.server")
@@ -144,11 +144,12 @@ class Server(object):
             else:
                 raise abort(404)
 
-        @app.route('/data/<name>')
-        def module_data(name):
-            if not name in self.modules:
-                raise abort(404)
-            return json.dumps(servers[name].data)
+        @app.route('/data')
+        def module_data():
+            data = {}
+            for name, server in servers.iteritems():
+                data[name] = server.data
+            return flask.jsonify(**data)
 
         @app.route('/<name>')
         def dashboard(name):

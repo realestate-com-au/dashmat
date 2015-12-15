@@ -16,6 +16,5 @@ class Server(ServerBase):
         yield "*/5 * * * *",  self.make_stats
 
     def make_stats(self, time):
-        data = random.randint(1, 1000)
-        self.data = data
+        yield 'value', random.randint(1, 1000)
         #self.set_string('data', json.dumps(data))

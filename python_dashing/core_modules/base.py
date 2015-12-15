@@ -101,6 +101,7 @@ class ClientBase(object):
 class ServerBase(object):
     def __init__(self, module, redis_host, **kwargs):
         self.module = module
+        self.data = {}
         self.redis_host = redis_host
 
         self.setup(**kwargs)
@@ -126,6 +127,9 @@ class ServerBase(object):
     def register_checks(self):
         return []
 
+    def run_check(self, func, *args, **kwargs):
+        for key, value in func(*args, **kwargs):
+            self.data[key] = value
     def add_to_list(self, key, **kwargs):
         key = "python_dashing:{0}:{1}".format(self.module.name, key)
         self.redis.rpush(key, json.dumps(kwargs))
