@@ -14,6 +14,7 @@ class Module(object):
 
     def __init__(self, name):
         self.name = name
+        self.data = None
 
     @classmethod
     def dependencies(self):

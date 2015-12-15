@@ -15,6 +15,7 @@ import pkg_resources
 import threading
 import logging
 import time
+import json
 import os
 
 log = logging.getLogger("python_dashing.server")
@@ -137,31 +138,7 @@ class Server(object):
 
         @app.route('/static/<path:path>', methods=['GET'])
         def static(path):
-            if path.startswith("module_registration/"):
-                module_name = os.path.splitext(path.split("/", 2)[1])[0]
-                if module_name not in self.modules:
-                    abort(404)
-
-                wrapper = "$(document).ready(function() {{\n  {0}\n}});"
-                lines = []
-                for dom_element, route, options in servers[module_name].update_registration:
-                    while route and route.startswith("/"):
-                        route = route[1:]
-                    every = options.get("every", 30)
-
-                    pre = options.get("pre", "")
-                    if pre:
-                        pre = ", function() {{ {0} }}".format(dedent(pre))
-
-                    post = options.get("post", "")
-                    if post:
-                        post = ", function() {{ {0} }}".format(dedent(post))
-                    lines.append("  register_update('{0}', '/modules/{1}/{2}', {3}{4}{5});".format(dom_element, module_name, route, every, post, pre))
-
-                template = wrapper.format('\n'.join(lines))
-                return Response(response=template, status=200, mimetype="application/javascript")
-
-            elif path.startswith("module/"):
+            if path.startswith("module/"):
                 module_name = path.split("/")
                 rest = ""
                 if len(module_name) == 1:
@@ -183,6 +160,13 @@ class Server(object):
                 return send_from_directory(os.path.dirname(path), os.path.basename(path))
             else:
                 raise abort(404)
+
+        @app.route('/data/<name>')
+        def module_data(name):
+            if not name in self.modules:
+                raise abort(404)
+            server = servers[name]
+            return json.dumps(server.data)
 
         @app.route('/<name>')
         def dashboard(name):
