@@ -168,36 +168,6 @@ class Server(object):
             title = name.replace('_', ' ').title()
             return render_template('index.html', config=config, title=title)
 
-        for name, module in self.modules.items():
-            for route, view_function in servers[name].routes:
-                while route and route.startswith("/"):
-                    route = route[1:]
-
-                def make_view(name, view_function):
-                    def view(*args, **kwargs):
-                        result = view_function(*args, **kwargs)
-                        if type(result) is not tuple:
-                            return result
-                        template, context = view_function(*args, **kwargs)
-
-                        template_env = Environment(loader=FileSystemLoader(self.templates_by_module[name]))
-                        template_env.add_extension("pyjade.ext.jinja.PyJadeExtension")
-                        self.setup_jinja_env(template_env, dashboard, {})
-
-                        def nonzero(data):
-                            return any(item != 0 for item in data)
-                        context['nonzero'] = nonzero
-
-                        return template_env.get_template(template).render(context)
-
-                    return view
-
-                view = make_view(name, view_function)
-                route_name = "/modules/{0}/{1}".format(name, route)
-                view.__name__ = route_name[1:].replace("/", "__")
-                log.info("Adding route: {0}".format(route_name))
-                app.route(route_name)(view)
-
     def setup_jinja_env(self, env, dashboard, activated_clients):
         def module_filter(name, **client_options):
             module = self.modules[name]

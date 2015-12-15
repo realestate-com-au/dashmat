@@ -14,7 +14,6 @@ export default class Number extends Component {
 }
 
 Number.propTypes = {
-  id: PropTypes.string,
   data: PropTypes.number,
   title: PropTypes.string,
 };
