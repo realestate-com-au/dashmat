@@ -100,7 +100,7 @@ class Server(object):
                 for name, server in servers.items():
                     registered = list(server.register_checks)
                     if registered:
-                        checks[name] = CronnedChecks(registered)
+                        checks[name] = CronnedChecks(registered, module_name=name)
 
             def first_run(checks):
                 for name in checks:

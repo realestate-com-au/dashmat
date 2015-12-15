@@ -96,5 +96,5 @@ def run_checks(collector):
             server = modules[name].make_server(collector.configuration['python_dashing'].redis_host, module_options[name].server_options)
             registered = list(server.register_checks)
             if registered:
-                CronnedChecks(registered).run(force=True)
+                CronnedChecks(registered, module_name=name).run(force=True)
 
