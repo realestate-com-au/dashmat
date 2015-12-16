@@ -13,6 +13,7 @@ import logging
 
 log = logging.getLogger("python_dashing.executor")
 
+
 class App(DelfickApp):
     cli_categories = ['python_dashing']
     cli_description = "Application that reads YAML and serves up pretty dashboards"

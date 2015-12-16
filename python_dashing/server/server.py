@@ -1,4 +1,3 @@
-from python_dashing.jinja_filters import jinja_filters
 from python_dashing.scheduler import Scheduler
 
 from tornado.httpserver import HTTPServer
@@ -8,9 +7,6 @@ from tornado.ioloop import IOLoop
 from flask import send_from_directory, render_template, abort
 from flask import Flask
 
-from jinja2.loaders import FileSystemLoader
-from jinja2 import Environment
-import pkg_resources
 import threading
 import logging
 import flask
@@ -23,7 +19,7 @@ here = os.path.dirname(__file__)
 
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, templates_by_module, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
@@ -32,7 +28,6 @@ class Server(object):
         self.dashboards = dashboards
         self.module_options = module_options
         self.without_checks = without_checks
-        self.templates_by_module = templates_by_module
 
         self.allowed_static_folders = allowed_static_folders
 
@@ -64,14 +59,10 @@ class Server(object):
             first_run = False
             time.sleep(5)
 
-    def template_folders_for(self, module):
-        return self.templates_by_module[module] + [os.path.join(here, "templates")]
-
     @property
     def app(self):
         if getattr(self, "_app", None) is None:
             self._app = Flask("python_dashing.server", static_url_path=os.path.join(here, "static"))
-            self._app.jinja_env.add_extension('pyjade.ext.jinja.PyJadeExtension')
 
             # Remove auto generated static route
             while self._app.url_map._rules:
@@ -111,23 +102,9 @@ class Server(object):
 
         @app.route('/static/<path:path>', methods=['GET'])
         def static(path):
-            if path.startswith("module/"):
-                module_name = path.split("/")
-                rest = ""
-                if len(module_name) == 1:
-                    abort(404)
-
-                if len(module_name) == 2:
-                    module_name = module_name[1]
-                elif len(module_name) == 3:
-                    module_name, rest = module_name[1:]
-
-                if module_name in self.modules:
-                    path = self.modules[module_name].path_for(rest)
-            else:
-                while path and path.startswith("/"):
-                    path = path[1:]
-                path = os.path.join(here, "static", path)
+            while path and path.startswith("/"):
+                path = path[1:]
+            path = os.path.join(here, "static", path)
 
             if any(path.startswith(folder) for folder in self.allowed_static_folders):
                 return send_from_directory(os.path.dirname(path), os.path.basename(path))
@@ -150,23 +127,4 @@ class Server(object):
             }
             title = name.replace('_', ' ').title()
             return render_template('index.html', config=config, title=title)
-
-    def setup_jinja_env(self, env, dashboard, activated_clients):
-        def module_filter(name, **client_options):
-            module = self.modules[name]
-            for dependency in module.dependencies():
-                if dependency not in activated_clients:
-                    activated_clients[dependency] = self.modules[dependency].make_client({})
-
-            if name not in activated_clients:
-                activated_clients[name] = module.make_client(client_options)
-
-            template_env = Environment(loader=FileSystemLoader(self.templates_by_module[name]))
-            template_env.add_extension("pyjade.ext.jinja.PyJadeExtension")
-            self.setup_jinja_env(template_env, dashboard, activated_clients)
-
-            return template_env.get_template(activated_clients[name].template_name).render(activated_clients[name].template_context)
-        env.filters["module"] = module_filter
-
-        env.filters.update(jinja_filters)
 

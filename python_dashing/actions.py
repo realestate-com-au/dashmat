@@ -41,7 +41,6 @@ def serve(collector):
     dashboards = collector.configuration["dashboards"]
     module_options = collector.configuration["modules"]
     python_dashing = collector.configuration["python_dashing"]
-    templates_by_module = collector.configuration["__module_template_folders__"]
 
     options = namedtuple("Options", ["import_path", "server_options"])
     for name, module in list(modules.items()):
@@ -59,7 +58,6 @@ def serve(collector):
         , modules
         , module_options
         , python_dashing.allowed_static_folders
-        , templates_by_module
         , python_dashing.without_checks
         ).serve()
 

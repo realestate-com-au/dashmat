@@ -67,7 +67,6 @@ class Collector(CollectorBase):
         imported = {}
         registered = {}
         active_modules = {}
-        templates_by_module = {}
 
         for thing in ['python_dashing', 'templates', 'modules', 'dashboards']:
             def make_converter(thing):
@@ -101,18 +100,16 @@ class Collector(CollectorBase):
         if "modules" in configuration:
             for name, module in configuration["modules"].items():
                 if module.active:
-                    self.activate_module(name, module.import_path, active_modules, registered, imported, templates_by_module, [])
+                    self.activate_module(name, module.import_path, active_modules, registered, imported)
 
         configuration['__imported__'] = imported
         configuration['__registered__'] = [name for _, name in registered.keys()]
         configuration['__active_modules__'] = active_modules
-        configuration['__module_template_folders__'] = templates_by_module
 
-    def activate_module(self, name, import_path, active_modules, registered, imported, templates_by_module, template_paths):
+    def activate_module(self, name, import_path, active_modules, registered, imported):
         if import_path not in imported:
             import_module_path, import_class = import_path.split(":")
             module = import_module(import_module_path)
-            template_paths.append(pkg_resources.resource_filename(import_module_path, 'templates'))
 
             if not hasattr(module, import_class):
                 raise BadImport("Failed to find the specified class", wanted=import_class, module=module, available=dir(module))
@@ -120,10 +117,9 @@ class Collector(CollectorBase):
             imported[import_path] = getattr(module, import_class)
             registered.update(imported[import_path].register_configuration())
             for dependency in imported[import_path].dependencies():
-                self.activate_module(None, dependency, active_modules, registered, imported, templates_by_module, list(template_paths))
+                self.activate_module(None, dependency, active_modules, registered, imported)
 
         # Instantiate the module for this instance of it
         if name is not None:
             active_modules[name] = imported[import_path](name)
-            templates_by_module[name] = template_paths
 
