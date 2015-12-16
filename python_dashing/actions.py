@@ -93,9 +93,7 @@ def run_checks(collector):
 
     for name, module in modules.items():
         if chosen is None or name == chosen:
-            log.info("Making server for {0} module".format(name))
-            server = modules[name].make_server(module_options[name].server_options)
-            scheduler.register(server, name)
+            scheduler.register(module, name)
 
     scheduler.run(force=True)
 

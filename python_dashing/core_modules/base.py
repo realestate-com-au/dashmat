@@ -1,18 +1,13 @@
-from python_dashing.importer import import_module
-from python_dashing.errors import MissingModule
-
-import pkg_resources
 import logging
-import os
 
 log = logging.getLogger("python_dashing.core_modules.base")
 
+
 class Module(object):
-    relative_to = NotImplemented
 
     def __init__(self, name):
         self.name = name
-        self.data = None
+        self.data = {}
 
     @classmethod
     def dependencies(self):
@@ -42,71 +37,6 @@ class Module(object):
         return {}
 
     @property
-    def server_kls(self):
-        try:
-            return getattr(import_module(".".join([self.relative_to, "server"])), "Server")
-        except MissingModule:
-            return ServerBase
-
-    @property
-    def client_kls(self):
-        try:
-            return getattr(import_module(".".join([self.relative_to, "client"])), "Client")
-        except MissingModule:
-            return ClientBase
-
-    @property
-    def css(self):
-        return []
-
-    @property
-    def javascript(self):
-        return []
-
-    def make_server(self, server_kwargs):
-        return self.server_kls(self, **server_kwargs)
-
-    def make_client(self, client_kwargs):
-        return self.client_kls(self, **client_kwargs)
-
-    def path_for(self, static_resource):
-        return os.path.join(pkg_resources.resource_filename(self.relative_to, 'static'), static_resource)
-
-class ClientBase(object):
-    def __init__(self, module, **kwargs):
-        self.module = module
-        self.setup(**kwargs)
-
-    def setup(self, **kwargs):
-        pass
-
-    @property
-    def template_name(self):
-        return 'module.jade'
-
-    @property
-    def template_context(self):
-        return {}
-
-    @property
-    def css(self):
-        return self.module.css
-
-    @property
-    def javascript(self):
-        return self.module.javascript
-
-class ServerBase(object):
-    def __init__(self, module, **kwargs):
-        self.module = module
-        self.data = {}
-
-        self.setup(**kwargs)
-
-    def setup(self, **kwargs):
-        pass
-
-    @property
     def register_checks(self):
         return []
 
@@ -114,3 +44,10 @@ class ServerBase(object):
         for key, value in func(*args, **kwargs):
             self.data[key] = value
 
+
+class Widget(object):
+    def get_pack(self):
+        raise NotImplementedError
+
+    def register_configuration(self):
+        return {}

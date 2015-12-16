@@ -18,8 +18,6 @@ class kms_secret_spec(sb.Spec):
             return lambda: __import__("boto3").client("kms", val['location']).decrypt(CiphertextBlob=base64.b64decode(val['kms']))['Plaintext'].decode('utf-8')
 
 class AmazonBase(Module):
-    relative_to = "python_dashing.core_modules.amazon_base"
-
     @classmethod
     def requirements(kls):
         return ["boto3"]

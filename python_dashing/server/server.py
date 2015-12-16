@@ -40,11 +40,6 @@ class Server(object):
         if static_folder not in self.allowed_static_folders:
             self.allowed_static_folders.append(static_folder)
 
-        for module in modules.values():
-            static_path = pkg_resources.resource_filename(module.relative_to, "static")
-            if static_path not in self.allowed_static_folders:
-                self.allowed_static_folders.append(static_path)
-
     def serve(self):
         http_server = HTTPServer(WSGIContainer(self.app))
         http_server.listen(self.port, self.host)
@@ -86,24 +81,20 @@ class Server(object):
             self._app.url_map.update()
             self._app.view_functions.clear()
 
-            servers = {}
-            for name, module in list(self.modules.items()):
-                servers[name] = module.make_server(self.module_options[name].server_options)
-
             scheduler = Scheduler()
             if not self.without_checks:
-                for name, server in servers.items():
-                    scheduler.register(server, name)
+                for name, module in self.modules.items():
+                    scheduler.register(module, name)
 
             checks_thread = threading.Thread(target=self.start_checks, args=(scheduler, self.thread_stopper, ))
             checks_thread.daemon = True
             checks_thread.start()
 
             # Register our own routes
-            self.register_routes(self._app, servers)
+            self.register_routes(self._app)
         return self._app
 
-    def register_routes(self, app, servers):
+    def register_routes(self, app):
 
         @app.route("/diagnostic/status/heartbeat", methods=['GET'])
         def heartbeat():
@@ -146,8 +137,8 @@ class Server(object):
         @app.route('/data')
         def module_data():
             data = {}
-            for name, server in servers.iteritems():
-                data[name] = server.data
+            for name, module in self.modules.items():
+                data[name] = module.data
             return flask.jsonify(**data)
 
         @app.route('/<name>')
