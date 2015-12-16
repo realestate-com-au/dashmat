@@ -11,7 +11,10 @@ const BarChart = ({data, title='Bar Chart'}) =>
 
 
 BarChart.propTypes = {
-  data: PropTypes.number,
+  data: PropTypes.shape({
+    labels: PropTypes.array,
+    datasets: PropTypes.array
+  }),
   title: PropTypes.string,
 };
 
