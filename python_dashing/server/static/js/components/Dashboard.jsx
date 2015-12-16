@@ -1,6 +1,7 @@
 import React, {Component, PropTypes} from 'react';
 import WidgetBox from './WidgetBox.jsx';
 import Number from './Number.jsx';
+import BarChart from './BarChart.jsx';
 import styles from './Dashboard.css';
 import {resolve} from '../utils.js';
 
@@ -15,6 +16,9 @@ export class WidgetLoader extends Component {
     // TODO: Load dynamically
     if (type == 'Number') {
       return (<Number {...widgetProps} />);
+    }
+    if (type == 'BarChart') {
+      return (<BarChart {...widgetProps} />);
     }
     return (<WidgetBox>Unknown widget type {this.props.type}</WidgetBox>);
   }
