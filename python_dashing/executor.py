@@ -20,19 +20,19 @@ class App(DelfickApp):
     cli_environment_defaults = {"PYTHON_DASHING_CONFIG": ("--config", 'python_dashing.yml')}
     cli_positional_replacements = [('--task', 'list_tasks'), ('--artifact', "")]
 
-    def execute(self, args, extra_args, cli_args, logging_handler, no_docker=False):
-        cli_args["python_dashing"]["extra"] = extra_args
-        cli_args["python_dashing"]["debug"] = args.debug
+    def execute(self, args_obj, args_dict, extra_args, logging_handler, no_docker=False):
+        args_dict["python_dashing"]["extra"] = extra_args
+        args_dict["python_dashing"]["debug"] = args_obj.debug
 
-        if cli_args["python_dashing"]["allowed_static_folders"] is None:
-            cli_args["python_dashing"]["allowed_static_folders"] = []
+        if args_dict["python_dashing"]["allowed_static_folders"] is None:
+            args_dict["python_dashing"]["allowed_static_folders"] = []
 
         collector = Collector()
-        collector.prepare(cli_args["python_dashing"]["config"], cli_args)
+        collector.prepare(args_dict["python_dashing"]["config"], args_dict)
         if hasattr(collector, "configuration") and "term_colors" in collector.configuration:
             self.setup_logging_theme(logging_handler, colors=collector.configuration["term_colors"])
 
-        task = args.python_dashing_chosen_task
+        task = args_obj.python_dashing_chosen_task
         if task not in available_actions:
             raise BadTask("Unknown task", available=list(available_actions.keys()), wanted=task)
 

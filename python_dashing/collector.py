@@ -25,22 +25,22 @@ class Collector(CollectorBase):
     BadFileErrorKls = BadYaml
     BadConfigurationErrorKls = BadConfiguration
 
-    def alter_clone_cli_args(self, new_collector, new_cli_args, new_python_dashing_options=None):
+    def alter_clone_args_dict(self, new_collector, new_args_dict, new_python_dashing_options=None):
         new_python_dashing = self.configuration["python_dashing"].clone()
         if new_python_dashing_options:
             new_python_dashing.update(new_python_dashing_options)
-        new_cli_args["python_dashing"] = new_python_dashing
+        new_args_dict["python_dashing"] = new_python_dashing
 
-    def extra_prepare(self, configuration, cli_args):
+    def extra_prepare(self, configuration, args_dict):
         """Called before the configuration.converters are activated"""
-        python_dashing = cli_args.pop("python_dashing")
+        python_dashing = args_dict.pop("python_dashing")
 
         self.configuration.update(
             { "$@": python_dashing.get("extra", "")
             , "python_dashing": python_dashing
             , "templates": {}
             }
-        , source = "<cli_args>"
+        , source = "<args_dict>"
         )
 
     def home_dir_configuration_location(self):
