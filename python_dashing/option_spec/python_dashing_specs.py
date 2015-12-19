@@ -9,18 +9,37 @@ from python_dashing.formatter import MergedOptionStringFormatter
 from input_algorithms.validators import regexed
 from input_algorithms.spec_base import (
       defaulted, boolean, string_spec, formatted, match_spec, valid_string_spec, listof, overridden
-    , filename_spec, dictof, create_spec, dictionary_spec, required, integer_spec, Spec
+    , filename_spec, dictof, create_spec, dictionary_spec, required, integer_spec, Spec, Spec
+    , directory_spec
     )
 from input_algorithms.dictobj import dictobj
 
+from textwrap import dedent
 import six
 
-class DashboardSlot(dictobj):
+class Dashboard(dictobj):
     fields = {
-          'type': "Type of module (JS class name)"
-        , 'title': "The title of the widget"
-        , 'datasource': "The module to load data from"
+          'path': "Url path to the dashboard"
+
+        , 'es6': "Extra es6 javascript to add to the dashboard module"
+        , 'layout': "Reactjs xml for the layout of the dashboard"
+        , 'imports': "es6 imports for the dashboard"
         }
+
+    def make_dashboard_module(self):
+        return dedent("""
+            {imports}
+
+            export default class Dashboard extends React.Component {{
+                render() {{
+                    return (
+                        {layout}
+                    )
+                }};
+
+                {es6}
+            }}
+        """).format(imports="\n".join(self.imports), layout=self.layout, es6=self.es6)
 
 class PythonDashing(dictobj):
     fields = {
@@ -33,6 +52,7 @@ class PythonDashing(dictobj):
         , "config": "The config filename"
         , "allowed_static_folders": "The folders we're allowed to use as static folders"
         , "without_checks": "Whether to run the cronned checks or not"
+        , "compiled_static_folder": "Folder to cache compiled javascript"
         }
 
 class ModuleOptions(dictobj):
@@ -59,6 +79,7 @@ class PythonDashingSpec(object):
             , artifact = formatted_string()
             , allowed_static_folders = listof(formatted_string())
             , without_checks = defaulted(boolean(), False)
+            , compiled_static_folder = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_static"), MergedOptionStringFormatter))
             )
 
     @property
@@ -84,15 +105,12 @@ class PythonDashingSpec(object):
 
     @property
     def dashboards_spec(self):
-        return dictof(
-            # key is name
-            string_spec(),
-            # Value is 2d array of slots
-            listof(
-                create_spec(DashboardSlot
-                    , type = required(string_spec())
-                    , title = string_spec()
-                    , datasource = string_spec()
-                    )
+        return dictof(string_spec()
+            , create_spec(Dashboard
+                , path = formatted(overridden("{_key_name_0}"), MergedOptionStringFormatter)
+                , imports = listof(string_spec())
+                , es6 = string_spec()
+                , layout = string_spec()
+                )
             )
-        )
+

@@ -1,3 +1,4 @@
+from python_dashing.server.react import ReactServer
 from python_dashing.server.server import Server
 from python_dashing.scheduler import Scheduler
 
@@ -58,6 +59,7 @@ def serve(collector):
         , modules
         , module_options
         , python_dashing.allowed_static_folders
+        , python_dashing.compiled_static_folder
         , python_dashing.without_checks
         ).serve()
 
@@ -95,3 +97,7 @@ def run_checks(collector):
 
     scheduler.run(force=True)
 
+@an_action
+def make_reactjs_server_docker_image(collector):
+    """Create the docker image for the reactjs server"""
+    ReactServer().prepare()

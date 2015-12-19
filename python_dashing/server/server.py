@@ -1,3 +1,4 @@
+from python_dashing.server.react import ReactServer
 from python_dashing.scheduler import Scheduler
 
 from tornado.httpserver import HTTPServer
@@ -5,6 +6,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.ioloop import IOLoop
 
 from flask import send_from_directory, render_template, abort
+from werkzeug.routing import PathConverter
 from flask import Flask
 
 import threading
@@ -18,7 +20,7 @@ log = logging.getLogger("python_dashing.server")
 here = os.path.dirname(__file__)
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, compiled_static_folder, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
@@ -28,11 +30,14 @@ class Server(object):
         self.module_options = module_options
         self.without_checks = without_checks
 
+        self.compiled_static_folder = compiled_static_folder
         self.allowed_static_folders = allowed_static_folders
 
         static_folder = os.path.join(here, "static")
         if static_folder not in self.allowed_static_folders:
             self.allowed_static_folders.append(static_folder)
+
+        self.react_server = ReactServer()
 
     def serve(self):
         http_server = HTTPServer(WSGIContainer(self.app))
@@ -82,9 +87,15 @@ class Server(object):
 
             # Register our own routes
             self.register_routes(self._app)
+
+            # Prepare the docker image for translating jsx into javascript
+            self.react_server.prepare(self.compiled_static_folder)
         return self._app
 
     def register_routes(self, app):
+        class EverythingConverter(PathConverter):
+            regex = '.*?'
+        app.url_map.converters['everything'] = EverythingConverter
 
         @app.route("/diagnostic/status/heartbeat", methods=['GET'])
         def heartbeat():
@@ -99,6 +110,45 @@ class Server(object):
             static_dir = os.path.join(here, "static")
             return send_from_directory(static_dir, "version")
 
+        @app.route("/static/react_boilerplate.js", methods=["GET"])
+        def react_boilerplate():
+            location = os.path.join(self.compiled_static_folder, "react_boilerplate.js")
+            if not os.path.exists(location):
+                self.react_server.build_boilerplate()
+            return send_from_directory(self.compiled_static_folder, "react_boilerplate.js")
+
+        @app.route("/static/dashboards/<everything:path>", methods=["GET"])
+        def static_dashboards(path):
+            if path not in self.dashboards:
+                raise abort(404)
+
+            dashboard = self.dashboards[path]
+            javascript = dashboard.make_dashboard_module()
+
+            dashboard_folder = os.path.join(self.compiled_static_folder, "dashboards")
+            if not os.path.exists(dashboard_folder):
+                os.makedirs(dashboard_folder)
+
+            filename = path.replace("_", "__").replace("/", "_")
+
+            js_location = os.path.join(dashboard_folder, "{0}.js".format(filename))
+            raw_location = os.path.join(dashboard_folder, "{0}.raw".format(filename))
+
+            if os.path.exists(raw_location):
+                with open(raw_location) as fle:
+                    if fle.read() != javascript:
+                        with open(raw_location, 'w') as write_fle:
+                            write_fle.write(javascript)
+            else:
+                with open(raw_location, 'w') as write_fle:
+                    write_fle.write(javascript)
+
+            if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > os.stat(js_location).st_mtime:
+                with open(js_location, 'w') as fle:
+                    fle.write(self.react_server.build_single(raw_location, js_location))
+
+            return send_from_directory(dashboard_folder, "{0}.js".format(filename))
+
         @app.route('/static/<path:path>', methods=['GET'])
         def static(path):
             while path and path.startswith("/"):
@@ -110,20 +160,13 @@ class Server(object):
             else:
                 raise abort(404)
 
-        @app.route('/data')
-        def module_data():
-            data = {}
-            for name, module in self.modules.items():
-                data[name] = module.data
-            return flask.jsonify(**data)
+        def make_dashboard(path, dashboard):
+            def dashboard():
+                title = path.replace("/", ' ').replace('_', ' ').title()
+                return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title)
+            dashboard.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
+            return dashboard
 
-        @app.route('/<name>')
-        def dashboard(name):
-            if not name in self.dashboards:
-                raise abort(404)
-            config = {
-                'widgets': self.dashboards[name]
-            }
-            title = name.replace('_', ' ').title()
-            return render_template('index.html', config=config, title=title)
+        for path, dashboard in self.dashboards.items():
+            app.route(path, methods=["GET"])(make_dashboard(path, dashboard))
 

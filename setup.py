@@ -8,9 +8,7 @@ setup(
     , include_package_data = True
 
     , install_requires =
-      [ "delfick_app==0.7.3"
-      , "option_merge==0.9.9.4"
-      , "input_algorithms==0.4.5.1"
+      [ "docker-harpoon==0.6.5.4"
 
       , "six"
       , "croniter"
