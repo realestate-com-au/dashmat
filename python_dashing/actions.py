@@ -59,6 +59,7 @@ def serve(collector):
         , modules
         , module_options
         , python_dashing.allowed_static_folders
+        , python_dashing.compiled_static_prep
         , python_dashing.compiled_static_folder
         , python_dashing.without_checks
         ).serve()

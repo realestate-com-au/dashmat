@@ -9,8 +9,11 @@ from flask import send_from_directory, render_template, abort
 from werkzeug.routing import PathConverter
 from flask import Flask
 
+from textwrap import dedent
 import threading
+import tempfile
 import logging
+import shutil
 import flask
 import time
 import os
@@ -20,7 +23,7 @@ log = logging.getLogger("python_dashing.server")
 here = os.path.dirname(__file__)
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, compiled_static_folder, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, compiled_static_prep, compiled_static_folder, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
@@ -30,6 +33,7 @@ class Server(object):
         self.module_options = module_options
         self.without_checks = without_checks
 
+        self.compiled_static_prep = compiled_static_prep
         self.compiled_static_folder = compiled_static_folder
         self.allowed_static_folders = allowed_static_folders
 
@@ -144,8 +148,40 @@ class Server(object):
                     write_fle.write(javascript)
 
             if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > os.stat(js_location).st_mtime:
-                with open(js_location, 'w') as fle:
-                    fle.write(self.react_server.build_single(raw_location, js_location))
+                directory = None
+                try:
+                    directory = tempfile.mkdtemp(dir=self.compiled_static_prep)
+                    shutil.copy(raw_location, os.path.join(directory, "{0}.js".format(filename)))
+                    with open(os.path.join(directory, "webpack.config.js"), 'w') as fle:
+                        fle.write(dedent("""
+                          var webpack = require("webpack");
+
+                          module.exports = {{
+                              entry: [ "/raw/{0}.js" ],
+                              output: {{
+                                filename: "/compiled/dashboards/{0}.js",
+                                library: "Dashboard"
+                              }},
+                              module: {{
+                                loaders: [
+                                  {{
+                                    exclude: /node_modules/,
+                                    loader: "babel",
+                                    query: {{
+                                      presets: ["react", "es2015"]
+                                    }}
+                                  }}
+                                ]
+                              }},
+                              plugins: [
+                                new webpack.NoErrorsPlugin()
+                              ]
+                          }};
+                        """.format(filename)))
+                    self.react_server.build_webpack(directory)
+                finally:
+                    if directory and os.path.exists(directory):
+                        shutil.rmtree(directory)
 
             return send_from_directory(dashboard_folder, "{0}.js".format(filename))
 

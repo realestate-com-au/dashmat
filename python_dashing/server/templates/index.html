@@ -1,16 +1,11 @@
 <html>
 <head>
     <title>{{ title }}</title>
-    <script src="/static/polyfill.js"></script>
     <script src="/static/react_boilerplate.js"></script>
     <script src="{{ dashboardjs }}"></script>
 </head>
 <body>
     <div id="page-content"></div>
-    <script>
-        var element = React.createElement(Dashboard);
-        ReactDOM.render(element, document.getElementById('page-content'));
-    </script>
 </body>
 </html>
 

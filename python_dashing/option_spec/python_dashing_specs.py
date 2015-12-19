@@ -30,7 +30,7 @@ class Dashboard(dictobj):
         return dedent("""
             {imports}
 
-            export default class Dashboard extends React.Component {{
+            class Dashboard extends React.Component {{
                 render() {{
                     return (
                         {layout}
@@ -39,6 +39,11 @@ class Dashboard(dictobj):
 
                 {es6}
             }}
+
+            document.addEventListener("DOMContentLoaded", function(event) {{
+                var element = React.createElement(Dashboard);
+                ReactDOM.render(element, document.getElementById('page-content'));
+            }});
         """).format(imports="\n".join(self.imports), layout=self.layout, es6=self.es6)
 
 class PythonDashing(dictobj):
@@ -52,6 +57,7 @@ class PythonDashing(dictobj):
         , "config": "The config filename"
         , "allowed_static_folders": "The folders we're allowed to use as static folders"
         , "without_checks": "Whether to run the cronned checks or not"
+        , "compiled_static_prep": "Folder for preparing webpack bundles"
         , "compiled_static_folder": "Folder to cache compiled javascript"
         }
 
@@ -79,6 +85,7 @@ class PythonDashingSpec(object):
             , artifact = formatted_string()
             , allowed_static_folders = listof(formatted_string())
             , without_checks = defaulted(boolean(), False)
+            , compiled_static_prep = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_prep"), MergedOptionStringFormatter))
             , compiled_static_folder = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_static"), MergedOptionStringFormatter))
             )
 

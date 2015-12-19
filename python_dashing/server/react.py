@@ -3,6 +3,7 @@ Use Docker to create an instance of node that will transform jsx into javascript
 """
 
 from harpoon.option_spec.harpoon_specs import HarpoonSpec
+from harpoon.option_spec.image_objs import Mount
 from harpoon.executor import docker_context
 from harpoon.ship.builder import Builder
 from harpoon.ship.runner import Runner
@@ -146,8 +147,17 @@ class ReactServer(object):
         image.bash = command
         Runner().run_container(image, {image.name: image})
 
-    def build_webpack(self, module_path, bundle_config_name, ouptut_file):
-        pass
+    def build_webpack(self, input_dir):
+        command = "cd /raw && ln -s /project/node_modules . && /project/node_modules/.bin/webpack"
+        image = self.image.clone()
+
+        image.bash = command
+
+        image.volumes = image.volumes.clone()
+        image.volumes.mount = list(image.volumes.mount)
+        image.volumes.mount.append(Mount(input_dir, "/raw", "rw"))
+
+        Runner().run_container(image, {image.name: image})
 
     def build_single(self, input_file, output_file):
         command = "./node_modules/.bin/babel -f blah.jsx --presets es2015,react"
