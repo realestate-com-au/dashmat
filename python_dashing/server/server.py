@@ -17,7 +17,6 @@ log = logging.getLogger("python_dashing.server")
 
 here = os.path.dirname(__file__)
 
-
 class Server(object):
     def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, without_checks):
         self.thread_stopper = {"finished": False}

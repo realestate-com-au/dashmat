@@ -1,7 +1,6 @@
 from python_dashing.core_modules.base import Module as ModuleBase
 import random
 
-
 class Random(ModuleBase):
     @property
     def register_checks(self):

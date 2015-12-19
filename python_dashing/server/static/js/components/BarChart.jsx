@@ -9,7 +9,6 @@ const BarChart = ({data, title='Bar Chart'}) =>
     <Bar data={data} width="600" height="250"/>
   </WidgetBox>
 
-
 BarChart.propTypes = {
   data: PropTypes.shape({
     labels: PropTypes.array,

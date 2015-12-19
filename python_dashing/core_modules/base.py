@@ -2,7 +2,6 @@ import logging
 
 log = logging.getLogger("python_dashing.core_modules.base")
 
-
 class Module(object):
 
     def __init__(self, name):
@@ -43,7 +42,6 @@ class Module(object):
     def run_check(self, func, *args, **kwargs):
         for key, value in func(*args, **kwargs):
             self.data[key] = value
-
 
 class Widget(object):
     def get_pack(self):
