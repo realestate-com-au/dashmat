@@ -23,9 +23,6 @@ class App(DelfickApp):
         args_dict["python_dashing"]["extra"] = extra_args
         args_dict["python_dashing"]["debug"] = args_obj.debug
 
-        if args_dict["python_dashing"]["allowed_static_folders"] is None:
-            args_dict["python_dashing"]["allowed_static_folders"] = []
-
         collector = Collector()
         collector.prepare(args_dict["python_dashing"]["config"], args_dict)
         if hasattr(collector, "configuration") and "term_colors" in collector.configuration:
@@ -45,11 +42,6 @@ class App(DelfickApp):
             , help = "The config file to read"
             , dest = "python_dashing_config"
             , **defaults["--config"]
-            )
-
-        parser.add_argument("--allowed-static-folder"
-            , help = "Add a folder that we are allowed to serve static assets from"
-            , dest = "python_dashing_allowed_static_folders"
             )
 
         parser.add_argument("--task"

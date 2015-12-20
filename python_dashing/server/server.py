@@ -24,7 +24,7 @@ log = logging.getLogger("python_dashing.server")
 here = os.path.dirname(__file__)
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, allowed_static_folders, compiled_static_prep, compiled_static_folder, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, compiled_static_prep, compiled_static_folder, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
@@ -36,11 +36,6 @@ class Server(object):
 
         self.compiled_static_prep = compiled_static_prep
         self.compiled_static_folder = compiled_static_folder
-        self.allowed_static_folders = allowed_static_folders
-
-        static_folder = os.path.join(here, "static")
-        if static_folder not in self.allowed_static_folders:
-            self.allowed_static_folders.append(static_folder)
 
         self.react_server = ReactServer()
 

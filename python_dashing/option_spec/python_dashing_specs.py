@@ -58,7 +58,6 @@ class PythonDashing(dictobj):
         , "extra": "Sets the ``$@`` variable. Alternatively specify these after a ``--`` on the commandline"
         , "artifact": "Arbitrary argument"
         , "config": "The config filename"
-        , "allowed_static_folders": "The folders we're allowed to use as static folders"
         , "without_checks": "Whether to run the cronned checks or not"
         , "compiled_static_prep": "Folder for preparing webpack bundles"
         , "compiled_static_folder": "Folder to cache compiled javascript"
@@ -86,7 +85,6 @@ class PythonDashingSpec(object):
             , debug = defaulted(boolean(), False)
             , dry_run = defaulted(boolean(), False)
             , artifact = formatted_string()
-            , allowed_static_folders = listof(formatted_string())
             , without_checks = defaulted(boolean(), False)
             , compiled_static_prep = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_prep"), MergedOptionStringFormatter))
             , compiled_static_folder = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_static"), MergedOptionStringFormatter))
