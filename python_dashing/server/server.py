@@ -68,7 +68,7 @@ class Server(object):
     @property
     def app(self):
         if getattr(self, "_app", None) is None:
-            self._app = Flask("python_dashing.server", static_url_path=os.path.join(here, "static"))
+            self._app = Flask("python_dashing.server")
 
             # Remove auto generated static route
             while self._app.url_map._rules:
