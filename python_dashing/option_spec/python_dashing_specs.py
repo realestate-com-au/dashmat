@@ -28,9 +28,12 @@ class Dashboard(dictobj):
 
     def make_dashboard_module(self):
         return dedent("""
+            import "/modules/python_dashing.server/Dashboard.css";
+            import React, {{Component}} from 'react';
+            import ReactDOM from 'react-dom';
             {imports}
 
-            class Dashboard extends React.Component {{
+            class Dashboard extends Component {{
                 render() {{
                     return (
                         {layout}

@@ -10,6 +10,7 @@ from werkzeug.routing import PathConverter
 from flask import Flask
 
 from textwrap import dedent
+import pkg_resources
 import threading
 import tempfile
 import logging
@@ -114,13 +115,6 @@ class Server(object):
             static_dir = os.path.join(here, "static")
             return send_from_directory(static_dir, "version")
 
-        @app.route("/static/react_boilerplate.js", methods=["GET"])
-        def react_boilerplate():
-            location = os.path.join(self.compiled_static_folder, "react_boilerplate.js")
-            if not os.path.exists(location):
-                self.react_server.build_boilerplate()
-            return send_from_directory(self.compiled_static_folder, "react_boilerplate.js")
-
         @app.route("/static/dashboards/<everything:path>", methods=["GET"])
         def static_dashboards(path):
             if path not in self.dashboards:
@@ -147,17 +141,39 @@ class Server(object):
                 with open(raw_location, 'w') as write_fle:
                     write_fle.write(javascript)
 
-            if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > os.stat(js_location).st_mtime:
+            do_change = False
+            js_mtime = -1 if not os.path.exists(js_location) else os.stat(js_location).st_mtime
+            if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > js_mtime:
+                do_change = True
+
+            folders = [("python_dashing.server", os.path.join(here, "static", "react"))]
+            for name, module in self.modules.items():
+                react_folder = pkg_resources.resource_filename(module.import_path.split(":")[0], "static/react")
+                if os.path.exists(react_folder):
+                    if not do_change:
+                        for root, dirs, files in os.walk(react_folder, followlinks=True):
+                            for fle in files:
+                                location = os.path.join(root, fle)
+                                if os.stat(location).st_mtime > js_mtime:
+                                    do_change = True
+                                    break
+                module_path = '.'.join(module.import_path.split(":")[0].split(".")[:-1])
+                folders.append((module_path, react_folder))
+
+            if do_change:
                 directory = None
                 try:
                     directory = tempfile.mkdtemp(dir=self.compiled_static_prep)
                     shutil.copy(raw_location, os.path.join(directory, "{0}.js".format(filename)))
+                    for module_path, react_folder in folders:
+                        shutil.copytree(react_folder, os.path.join(directory, module_path))
+
                     with open(os.path.join(directory, "webpack.config.js"), 'w') as fle:
                         fle.write(dedent("""
                           var webpack = require("webpack");
 
                           module.exports = {{
-                              entry: [ "/raw/{0}.js" ],
+                              entry: [ "/modules/{0}.js" ],
                               output: {{
                                 filename: "/compiled/dashboards/{0}.js",
                                 library: "Dashboard"
@@ -167,9 +183,14 @@ class Server(object):
                                   {{
                                     exclude: /node_modules/,
                                     loader: "babel",
+                                    test: /\.jsx?$/,
                                     query: {{
                                       presets: ["react", "es2015"]
                                     }}
+                                  }},
+                                  {{
+                                    test: /\.css$/,
+                                    loader: "style!css?modules"
                                   }}
                                 ]
                               }},
@@ -184,17 +205,6 @@ class Server(object):
                         shutil.rmtree(directory)
 
             return send_from_directory(dashboard_folder, "{0}.js".format(filename))
-
-        @app.route('/static/<path:path>', methods=['GET'])
-        def static(path):
-            while path and path.startswith("/"):
-                path = path[1:]
-            path = os.path.join(here, "static", path)
-
-            if any(path.startswith(folder) for folder in self.allowed_static_folders):
-                return send_from_directory(os.path.dirname(path), os.path.basename(path))
-            else:
-                raise abort(404)
 
         def make_dashboard(path, dashboard):
             def dashboard():

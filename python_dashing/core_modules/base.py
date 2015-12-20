@@ -4,8 +4,9 @@ log = logging.getLogger("python_dashing.core_modules.base")
 
 class Module(object):
 
-    def __init__(self, name):
+    def __init__(self, name, import_path):
         self.name = name
+        self.import_path = import_path
         self.data = {}
 
     @classmethod

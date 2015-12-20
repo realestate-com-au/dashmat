@@ -121,5 +121,5 @@ class Collector(CollectorBase):
 
         # Instantiate the module for this instance of it
         if name is not None:
-            active_modules[name] = imported[import_path](name)
+            active_modules[name] = imported[import_path](name, import_path)
 

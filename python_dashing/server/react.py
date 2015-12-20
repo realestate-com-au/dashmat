@@ -26,7 +26,6 @@ class ReactServer(object):
         ctxt = docker_context()
         harpoon_options = {
               "docker_context": ctxt
-            , "no_intervention": True
             , "docker_context_maker": docker_context
             }
         self.harpoon = HarpoonSpec().harpoon_spec.normalise(Meta({}, []), harpoon_options)
@@ -89,43 +88,6 @@ class ReactServer(object):
                       , "mtime": mtime
                       }
                     ]
-                  , [ "ADD"
-                    , { "dest": "/project/boilerplate_imports.js"
-                      , "content": dedent("""
-                            window.React = require("react");
-                            window.ReactDOM = require("react-dom");
-                        """)
-                      , "mtime": mtime
-                      }
-                    ]
-                  , [ "ADD"
-                    , { "dest": "/project/webpack.config.js"
-                      , "content": dedent("""
-                          var path = require('path');
-                          var webpack = require("webpack");
-
-                          module.exports = {
-                              entry: [ "./boilerplate_imports.js" ],
-                              output: {
-                                filename: "/compiled/react_boilerplate.js",
-                              },
-                              module: {
-                                loaders: [
-                                  {
-                                    exclude: /node_modules/,
-                                    test: require.resolve("react"),
-                                    loaders: ["babel?plugins[]=transform-es2015-modules-amd"]
-                                  }
-                                ]
-                              },
-                              plugins: [
-                                new webpack.NoErrorsPlugin()
-                              ]
-                          };
-                        """)
-                      , "mtime": mtime
-                      }
-                    ]
                   ]
                 }
               }
@@ -141,39 +103,15 @@ class ReactServer(object):
         self.image = everything[["images", image_name]]
         Builder().make_image(self.image, {self.image.name: self.image})
 
-    def build_boilerplate(self):
-        command = "./node_modules/.bin/webpack"
-        image = self.image.clone()
-        image.bash = command
-        Runner().run_container(image, {image.name: image})
-
     def build_webpack(self, input_dir):
-        command = "cd /raw && ln -s /project/node_modules . && /project/node_modules/.bin/webpack"
+        command = "cd /modules && ln -s /project/node_modules . && /project/node_modules/.bin/webpack"
         image = self.image.clone()
 
         image.bash = command
 
         image.volumes = image.volumes.clone()
         image.volumes.mount = list(image.volumes.mount)
-        image.volumes.mount.append(Mount(input_dir, "/raw", "rw"))
+        image.volumes.mount.append(Mount(input_dir, "/modules", "rw"))
 
         Runner().run_container(image, {image.name: image})
-
-    def build_single(self, input_file, output_file):
-        command = "./node_modules/.bin/babel -f blah.jsx --presets es2015,react"
-        image = self.image.clone()
-
-        image.command = command
-        image.harpoon = image.harpoon.clone()
-        image.no_tty_option = True
-
-        with open(output_file, 'w') as fle:
-            with open(input_file) as input_fle:
-                image.harpoon.tty_stdin = input_fle
-                image.harpoon.tty_stdout = fle
-                Runner().run_container(image, {image.name: image})
-                fle.flush()
-
-        with open(output_file) as fle:
-            return fle.read()
 

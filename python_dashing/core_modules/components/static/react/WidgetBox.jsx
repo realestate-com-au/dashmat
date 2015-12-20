@@ -1,5 +1,5 @@
 import React, {Component, PropTypes} from 'react';
-import styles from './Dashboard.css';
+import styles from '/modules/python_dashing.server/Dashboard.css';
 
 export default class WidgetBox extends Component {
   render() {
