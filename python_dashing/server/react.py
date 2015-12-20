@@ -45,6 +45,7 @@ class ReactServer(object):
         ctxt = docker_context()
         harpoon_options = {
               "docker_context": ctxt
+            , "no_intervention": True
             , "docker_context_maker": docker_context
             }
         self.harpoon = HarpoonSpec().harpoon_spec.normalise(Meta({}, []), harpoon_options)
