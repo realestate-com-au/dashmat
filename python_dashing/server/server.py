@@ -24,7 +24,7 @@ log = logging.getLogger("python_dashing.server")
 here = os.path.dirname(__file__)
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, compiled_static_prep, compiled_static_folder, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, dynamic_dashboard_js, compiled_static_prep, compiled_static_folder, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
@@ -33,6 +33,7 @@ class Server(object):
         self.dashboards = dashboards
         self.module_options = module_options
         self.without_checks = without_checks
+        self.dynamic_dashboard_js = dynamic_dashboard_js
 
         self.compiled_static_prep = compiled_static_prep
         self.compiled_static_folder = compiled_static_folder
@@ -88,11 +89,12 @@ class Server(object):
             # Register our own routes
             self.register_routes(self._app)
 
-            # Prepare the docker image for translating jsx into javascript
-            deps = {}
-            for _, module in sorted(self.modules.items()):
-                deps.update(module.npm_deps())
-            self.react_server.prepare(deps, self.compiled_static_folder)
+            if self.dynamic_dashboard_js:
+                # Prepare the docker image for translating jsx into javascript
+                deps = {}
+                for _, module in sorted(self.modules.items()):
+                    deps.update(module.npm_deps())
+                self.react_server.prepare(deps, self.compiled_static_folder)
         return self._app
 
     def register_routes(self, app):
@@ -124,6 +126,8 @@ class Server(object):
                 , self.compiled_static_folder
                 , self.compiled_static_prep
                 , self.modules
+
+                , dynamic_dashboard_js = self.dynamic_dashboard_js
                 )
 
             return send_from_directory(os.path.dirname(location), os.path.basename(location))
@@ -138,7 +142,7 @@ class Server(object):
         for path, dashboard in self.dashboards.items():
             app.route(path, methods=["GET"])(make_dashboard(path, dashboard))
 
-def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compiled_static_prep, modules):
+def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compiled_static_prep, modules, dynamic_dashboard_js=True):
     """
     Given a dashboard, make the bundle javascript for it
 
@@ -170,6 +174,10 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
         os.makedirs(dashboard_folder)
 
     filename = dashboard.path.replace("_", "__").replace("/", "_")
+    final_location = "{0}.js".format(os.path.join(dashboard_folder, filename))
+
+    if not dynamic_dashboard_js:
+        return final_location
 
     js_location = os.path.join(dashboard_folder, "{0}.js".format(filename))
     raw_location = os.path.join(dashboard_folder, "{0}.raw".format(filename))
@@ -246,5 +254,5 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
             if directory and os.path.exists(directory):
                 shutil.rmtree(directory)
 
-    return os.path.join(dashboard_folder, filename)
+    return final_location
 

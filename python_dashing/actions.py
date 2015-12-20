@@ -60,6 +60,7 @@ def serve(collector):
         , dashboards
         , modules
         , module_options
+        , python_dashing.dynamic_dashboard_js
         , python_dashing.compiled_static_prep
         , python_dashing.compiled_static_folder
         , python_dashing.without_checks

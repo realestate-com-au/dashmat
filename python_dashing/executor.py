@@ -44,6 +44,12 @@ class App(DelfickApp):
             , **defaults["--config"]
             )
 
+        parser.add_argument("--no-dynamic-dashboard-js"
+            , help = "Turn off transpiling the dashboard javascript at runtime"
+            , dest = "python_dashing_dynamic_dashboard_js"
+            , action = "store_false"
+            )
+
         parser.add_argument("--task"
             , help = "The task to run"
             , dest = "python_dashing_chosen_task"

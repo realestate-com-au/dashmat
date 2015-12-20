@@ -59,6 +59,7 @@ class PythonDashing(dictobj):
         , "artifact": "Arbitrary argument"
         , "config": "The config filename"
         , "without_checks": "Whether to run the cronned checks or not"
+        , "dynamic_dashboard_js": "Whether to use docker to generate dashboard js at runtime"
         , "compiled_static_prep": "Folder for preparing webpack bundles"
         , "compiled_static_folder": "Folder to cache compiled javascript"
         }
@@ -86,6 +87,7 @@ class PythonDashingSpec(object):
             , dry_run = defaulted(boolean(), False)
             , artifact = formatted_string()
             , without_checks = defaulted(boolean(), False)
+            , dynamic_dashboard_js = defaulted(boolean(), True)
             , compiled_static_prep = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_prep"), MergedOptionStringFormatter))
             , compiled_static_folder = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_static"), MergedOptionStringFormatter))
             )
