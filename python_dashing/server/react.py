@@ -16,6 +16,7 @@ from input_algorithms.meta import Meta
 
 from textwrap import dedent
 import pkg_resources
+import collections
 import json
 import sys
 
@@ -87,7 +88,7 @@ class ReactServer(object):
                       , "content": json.dumps(
                           { "name": "python-dashing"
                           , "version": "0.1.0"
-                          , "dependencies": deps
+                          , "dependencies": collections.OrderedDict(sorted(deps.items()))
                           }
                         )
                       , "mtime": mtime

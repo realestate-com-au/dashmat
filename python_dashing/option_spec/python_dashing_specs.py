@@ -117,7 +117,7 @@ class PythonDashingSpec(object):
     def dashboards_spec(self):
         return dictof(string_spec()
             , create_spec(Dashboard
-                , path = formatted(overridden("{_key_name_0}"), MergedOptionStringFormatter)
+                , path = formatted(overridden("{_key_name_1}"), MergedOptionStringFormatter)
                 , imports = listof(string_spec())
                 , es6 = string_spec()
                 , layout = string_spec()

@@ -1,5 +1,5 @@
+from python_dashing.server.server import Server, generate_dashboard_js
 from python_dashing.server.react import ReactServer
-from python_dashing.server.server import Server
 from python_dashing.scheduler import Scheduler
 
 from input_algorithms.spec_base import NotSpecified
@@ -9,6 +9,7 @@ import logging
 import json
 import six
 import sys
+import os
 
 log = logging.getLogger("python_dashing.actions")
 
@@ -105,9 +106,34 @@ def make_reactjs_server_docker_image(collector):
     ReactServer().prepare()
 
 @an_action
-def list_npm_modules(collector):
+def list_npm_modules(collector, no_print=False):
     """List the npm modules that get installed in a docker image for the react server"""
     default = ReactServer().default_npm_deps()
     for _, module in sorted(collector.configuration["__active_modules__"].items()):
         default.update(module.npm_deps())
-    print(json.dumps(default, indent=4, sort_keys=True))
+
+    if not no_print:
+        print(json.dumps(default, indent=4, sort_keys=True))
+    return default
+
+@an_action
+def collect_dashboard_js(collector):
+    """Generate dashboard javascript for each dashboard"""
+    python_dashing = collector.configuration["python_dashing"]
+
+    modules = collector.configuration["__active_modules__"]
+    compiled_static_prep = python_dashing.compiled_static_prep
+    compiled_static_folder = python_dashing.compiled_static_folder
+
+    npm_deps = list_npm_modules(collector, no_print=True)
+    react_server = ReactServer()
+    react_server.prepare(npm_deps, compiled_static_folder)
+
+    for dashboard in collector.configuration["dashboards"].values():
+        log.info("Generating compiled javascript for dashboard:{0}".format(dashboard.path))
+        filename = dashboard.path.replace("_", "__").replace("/", "_")
+        location = os.path.join(compiled_static_folder, "dashboards", "{0}.js".format(filename))
+        if os.path.exists(location):
+            os.remove(location)
+        generate_dashboard_js(dashboard, react_server, compiled_static_folder, compiled_static_prep, modules)
+

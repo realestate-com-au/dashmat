@@ -123,91 +123,15 @@ class Server(object):
             if path not in self.dashboards:
                 raise abort(404)
 
-            dashboard = self.dashboards[path]
-            javascript = dashboard.make_dashboard_module()
+            location = generate_dashboard_js(
+                  self.dashboards[path]
+                , self.react_server
+                , self.compiled_static_folder
+                , self.compiled_static_prep
+                , self.modules
+                )
 
-            dashboard_folder = os.path.join(self.compiled_static_folder, "dashboards")
-            if not os.path.exists(dashboard_folder):
-                os.makedirs(dashboard_folder)
-
-            filename = path.replace("_", "__").replace("/", "_")
-
-            js_location = os.path.join(dashboard_folder, "{0}.js".format(filename))
-            raw_location = os.path.join(dashboard_folder, "{0}.raw".format(filename))
-
-            if os.path.exists(raw_location):
-                with open(raw_location) as fle:
-                    if fle.read() != javascript:
-                        with open(raw_location, 'w') as write_fle:
-                            write_fle.write(javascript)
-            else:
-                with open(raw_location, 'w') as write_fle:
-                    write_fle.write(javascript)
-
-            do_change = False
-            js_mtime = -1 if not os.path.exists(js_location) else os.stat(js_location).st_mtime
-            if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > js_mtime:
-                do_change = True
-
-            folders = [("python_dashing.server", os.path.join(here, "static", "react"))]
-            for name, module in self.modules.items():
-                react_folder = pkg_resources.resource_filename(module.import_path.split(":")[0], "static/react")
-                if os.path.exists(react_folder):
-                    if not do_change:
-                        for root, dirs, files in os.walk(react_folder, followlinks=True):
-                            for fle in files:
-                                location = os.path.join(root, fle)
-                                if os.stat(location).st_mtime > js_mtime:
-                                    do_change = True
-                                    break
-                module_path = '.'.join(module.import_path.split(":")[0].split(".")[:-1])
-                folders.append((module_path, react_folder))
-
-            if do_change:
-                directory = None
-                try:
-                    directory = tempfile.mkdtemp(dir=self.compiled_static_prep)
-                    shutil.copy(raw_location, os.path.join(directory, "{0}.js".format(filename)))
-                    for module_path, react_folder in folders:
-                        shutil.copytree(react_folder, os.path.join(directory, module_path))
-
-                    with open(os.path.join(directory, "webpack.config.js"), 'w') as fle:
-                        fle.write(dedent("""
-                          var webpack = require("webpack");
-
-                          module.exports = {{
-                              entry: [ "/modules/{0}.js" ],
-                              output: {{
-                                filename: "/compiled/dashboards/{0}.js",
-                                library: "Dashboard"
-                              }},
-                              module: {{
-                                loaders: [
-                                  {{
-                                    exclude: /node_modules/,
-                                    loader: "babel",
-                                    test: /\.jsx?$/,
-                                    query: {{
-                                      presets: ["react", "es2015"]
-                                    }}
-                                  }},
-                                  {{
-                                    test: /\.css$/,
-                                    loader: "style!css?modules"
-                                  }}
-                                ]
-                              }},
-                              plugins: [
-                                new webpack.NoErrorsPlugin()
-                              ]
-                          }};
-                        """.format(filename)))
-                    self.react_server.build_webpack(directory)
-                finally:
-                    if directory and os.path.exists(directory):
-                        shutil.rmtree(directory)
-
-            return send_from_directory(dashboard_folder, "{0}.js".format(filename))
+            return send_from_directory(os.path.dirname(location), os.path.basename(location))
 
         def make_dashboard(path, dashboard):
             def dashboard():
@@ -218,4 +142,114 @@ class Server(object):
 
         for path, dashboard in self.dashboards.items():
             app.route(path, methods=["GET"])(make_dashboard(path, dashboard))
+
+def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compiled_static_prep, modules):
+    """
+    Given a dashboard, make the bundle javascript for it
+
+    We also do some caching so we don't generate the javascript when nothing has changed
+
+    First we generate the dashboard es6 content with dashboard.make_dashboard_module()
+    we then write this to disk if not on disk or hasn't changed.
+
+    If the compiled equivalent is not on disk or the raw has a modified time greater than compiled
+    We generate compiled.
+
+    If this is not the case, we find all the static/react folders from our modules
+    and determine if anything has a modified time greater than the compiled javascript.
+
+    If nothing does, and we have our compiled javascript, we do nothing.
+
+    If we need to do something, we create a temporary folder with a copy of the raw javascript
+    and the static/react folders for each module named with the import_path of the module.
+
+    Finally we add a webpack configuration to this temporary folder and tell react_server to run webpack
+    there and generate the compiled javascript.
+
+    Easy!
+    """
+    javascript = dashboard.make_dashboard_module()
+
+    dashboard_folder = os.path.join(compiled_static_folder, "dashboards")
+    if not os.path.exists(dashboard_folder):
+        os.makedirs(dashboard_folder)
+
+    filename = dashboard.path.replace("_", "__").replace("/", "_")
+
+    js_location = os.path.join(dashboard_folder, "{0}.js".format(filename))
+    raw_location = os.path.join(dashboard_folder, "{0}.raw".format(filename))
+
+    if os.path.exists(raw_location):
+        with open(raw_location) as fle:
+            if fle.read() != javascript:
+                with open(raw_location, 'w') as write_fle:
+                    write_fle.write(javascript)
+    else:
+        with open(raw_location, 'w') as write_fle:
+            write_fle.write(javascript)
+
+    do_change = False
+    js_mtime = -1 if not os.path.exists(js_location) else os.stat(js_location).st_mtime
+    if not os.path.exists(js_location) or os.stat(raw_location).st_mtime > js_mtime:
+        do_change = True
+
+    folders = [("python_dashing.server", os.path.join(here, "static", "react"))]
+    for name, module in modules.items():
+        react_folder = pkg_resources.resource_filename(module.import_path.split(":")[0], "static/react")
+        if os.path.exists(react_folder):
+            if not do_change:
+                for root, dirs, files in os.walk(react_folder, followlinks=True):
+                    for fle in files:
+                        location = os.path.join(root, fle)
+                        if os.stat(location).st_mtime > js_mtime:
+                            do_change = True
+                            break
+        module_path = '.'.join(module.import_path.split(":")[0].split(".")[:-1])
+        folders.append((module_path, react_folder))
+
+    if do_change:
+        directory = None
+        try:
+            directory = tempfile.mkdtemp(dir=compiled_static_prep)
+            shutil.copy(raw_location, os.path.join(directory, "{0}.js".format(filename)))
+            for module_path, react_folder in folders:
+                shutil.copytree(react_folder, os.path.join(directory, module_path))
+
+            with open(os.path.join(directory, "webpack.config.js"), 'w') as fle:
+                fle.write(dedent("""
+                    var webpack = require("webpack");
+
+                    module.exports = {{
+                      entry: [ "/modules/{0}.js" ],
+                      output: {{
+                        filename: "/compiled/dashboards/{0}.js",
+                        library: "Dashboard"
+                      }},
+                      module: {{
+                        loaders: [
+                          {{
+                            exclude: /node_modules/,
+                            loader: "babel",
+                            test: /\.jsx?$/,
+                            query: {{
+                                presets: ["react", "es2015"]
+                            }}
+                          }},
+                          {{
+                            test: /\.css$/,
+                            loader: "style!css?modules"
+                          }}
+                        ]
+                      }},
+                      plugins: [
+                        new webpack.NoErrorsPlugin()
+                      ]
+                    }};
+                """.format(filename)))
+            react_server.build_webpack(directory)
+        finally:
+            if directory and os.path.exists(directory):
+                shutil.rmtree(directory)
+
+    return os.path.join(dashboard_folder, filename)
 
