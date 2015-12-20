@@ -31,6 +31,7 @@ class ReactServer(object):
             , "babel-polyfill": "^6.3.14"
             , "babel-preset-react": "^6.3.13"
             , "babel-preset-es2015": "^6.3.13"
+            , "babel-plugin-transform-object-rest-spread": "^6.3.13"
 
             , "css-loader": "^0.23.0"
             , "style-loader": "^0.13.0"

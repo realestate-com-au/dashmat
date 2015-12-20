@@ -10,7 +10,7 @@ export default class WidgetBox extends Component {
     if (this.props.className) {
       className += ' ' + this.props.className;
     }
-    return <div className={className} style={style}>{this.props.children}</div>;
+    return <div className={className} style={style}>{this.render_inner().children}</div>;
   }
 }
 

@@ -235,7 +235,8 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
                             loader: "babel",
                             test: /\.jsx?$/,
                             query: {{
-                                presets: ["react", "es2015"]
+                                presets: ["react", "es2015"],
+                                plugins: ["transform-object-rest-spread"]
                             }}
                           }},
                           {{
