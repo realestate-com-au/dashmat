@@ -50,6 +50,12 @@ class App(DelfickApp):
             , action = "store_false"
             )
 
+        parser.add_argument("--redis-host"
+            , help = "Redis host to store data in"
+            , dest = "python_dashing_redis_host"
+            , default = ""
+            )
+
         parser.add_argument("--task"
             , help = "The task to run"
             , dest = "python_dashing_chosen_task"

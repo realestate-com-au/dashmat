@@ -1,4 +1,5 @@
 from python_dashing.server.server import Server, generate_dashboard_js
+from python_dashing.datastore import JsonDataStore, RedisDataStore
 from python_dashing.server.react import ReactServer
 from python_dashing.scheduler import Scheduler
 
@@ -6,6 +7,7 @@ from input_algorithms.spec_base import NotSpecified
 from collections import namedtuple
 from textwrap import dedent
 import logging
+import redis
 import json
 import six
 import sys
@@ -53,6 +55,11 @@ def serve(collector):
                 if dependency not in module_options:
                     module_options[dependency] = options(dependency, {})
 
+    config_root = collector.configuration["config_root"]
+    datastore = JsonDataStore(os.path.join(config_root, "data.json"))
+    if python_dashing.redis_host:
+        datastore = RedisDataStore(redis.Redis(python_dashing.redis_host))
+
     Server(
           python_dashing.host
         , python_dashing.port
@@ -60,6 +67,7 @@ def serve(collector):
         , dashboards
         , modules
         , module_options
+        , datastore
         , python_dashing.dynamic_dashboard_js
         , python_dashing.compiled_static_prep
         , python_dashing.compiled_static_folder

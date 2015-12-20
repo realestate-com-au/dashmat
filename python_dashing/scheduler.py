@@ -9,11 +9,11 @@ class Scheduler(object):
         self.check_times = {}
         self.checks = []
 
-    def register(self, module, module_name):
-        for cron, func in module.register_checks:
+    def register(self, module, server, module_name):
+        for cron, func in server.register_checks:
             self.checks.append((cron, func, module, module_name))
 
-    def run(self, force=False):
+    def run(self, datastore, force=False):
         now = datetime.datetime.now()
         for cron, func, module, module_name in self.checks:
             key = "{0}_{1}".format(cron.replace(" ", "_").replace("/", "SLSH").replace("*", "STR"), func.__name__)
@@ -24,7 +24,9 @@ class Scheduler(object):
 
             log.info("Triggering cron: {0}.{1} '{2}'".format(module_name, func.__name__, cron))
             try:
-                module.run_check(func, now - self.check_times.get(key, now))
+                ds = datastore.prefixed("{0}-{1}".format(module.relative_to, module_name))
+                for key, value in func(now - self.check_times.get(key, now)):
+                    ds.create(key, value)
             except Exception:
                 log.exception("Error running a check\tmodule={0}\tcheck={1}".format(module_name, func.__name__))
             finally:

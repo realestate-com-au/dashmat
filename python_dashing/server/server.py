@@ -24,12 +24,13 @@ log = logging.getLogger("python_dashing.server")
 here = os.path.dirname(__file__)
 
 class Server(object):
-    def __init__(self, host, port, debug, dashboards, modules, module_options, dynamic_dashboard_js, compiled_static_prep, compiled_static_folder, without_checks):
+    def __init__(self, host, port, debug, dashboards, modules, module_options, datastore, dynamic_dashboard_js, compiled_static_prep, compiled_static_folder, without_checks):
         self.thread_stopper = {"finished": False}
 
         self.host = host
         self.port = port
         self.modules = modules
+        self.datastore = datastore
         self.dashboards = dashboards
         self.module_options = module_options
         self.without_checks = without_checks
@@ -57,7 +58,7 @@ class Server(object):
                 break
 
             try:
-                scheduler.run(force=first_run)
+                scheduler.run(self.datastore, force=first_run)
             except Exception:
                 log.exception("Failed to run scheduler")
 

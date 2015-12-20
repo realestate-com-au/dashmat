@@ -1,13 +1,10 @@
 dashboards:
-  test:
-    - type: Number
-      title: YAML test
-      datasource: test.value
-    - type: aaa
-    - type: aaa
-    - type: Number
-      title: another thing
+  /:
+    layout:
+      <Number title="test" data={24} datasource="/data/components/number" every={1000} />
+    imports:
+      - 'import Number from "/modules/python_dashing.core_modules.components/Number.jsx";'
 
 modules:
-  test:
-    import_path: python_dashing.core_modules.examples.rand:Module
+  components:
+    import_path: python_dashing.core_modules.components.main:Components

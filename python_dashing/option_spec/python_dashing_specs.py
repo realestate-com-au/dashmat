@@ -59,6 +59,7 @@ class PythonDashing(dictobj):
         , "dry_run": "Whether to do a dry run or not"
         , "extra": "Sets the ``$@`` variable. Alternatively specify these after a ``--`` on the commandline"
         , "artifact": "Arbitrary argument"
+        , "redis_host": "Location of redis host for storing values"
         , "config": "The config filename"
         , "without_checks": "Whether to run the cronned checks or not"
         , "dynamic_dashboard_js": "Whether to use docker to generate dashboard js at runtime"
@@ -88,6 +89,7 @@ class PythonDashingSpec(object):
             , debug = defaulted(boolean(), False)
             , dry_run = defaulted(boolean(), False)
             , artifact = formatted_string()
+            , redis_host = formatted_string()
             , without_checks = defaulted(boolean(), False)
             , dynamic_dashboard_js = defaulted(boolean(), True)
             , compiled_static_prep = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_prep"), MergedOptionStringFormatter))
