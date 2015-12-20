@@ -77,10 +77,14 @@ class Server(object):
             self._app.url_map.update()
             self._app.view_functions.clear()
 
+            self.servers = {}
+            for name, module in self.modules.items():
+                self.servers[name] = (module, module.make_server(self.module_options[name].server_options))
+
             scheduler = Scheduler()
             if not self.without_checks:
-                for name, module in self.modules.items():
-                    scheduler.register(module, name)
+                for name, (module, server) in self.servers.items():
+                    scheduler.register(module, server, name)
 
             checks_thread = threading.Thread(target=self.start_checks, args=(scheduler, self.thread_stopper, ))
             checks_thread.daemon = True
@@ -101,6 +105,13 @@ class Server(object):
         class EverythingConverter(PathConverter):
             regex = '.*?'
         app.url_map.converters['everything'] = EverythingConverter
+
+        make_view = lambda func: lambda *args, **kwargs : func(self.datastore, *args, **kwargs)
+        for name, (_, server) in self.servers.items():
+            for route_name, func in server.routes:
+                view = make_view(func)
+                view.__name__ = "server_route_{0}_{1}".format(name, route_name)
+                app.route("/data/{0}/{1}".format(name, route_name))(view)
 
         @app.route("/diagnostic/status/heartbeat", methods=['GET'])
         def heartbeat():
@@ -198,7 +209,7 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
 
     folders = [("python_dashing.server", os.path.join(here, "static", "react"))]
     for name, module in modules.items():
-        react_folder = pkg_resources.resource_filename(module.import_path.split(":")[0], "static/react")
+        react_folder = pkg_resources.resource_filename(module.relative_to, "static/react")
         if os.path.exists(react_folder):
             if not do_change:
                 for root, dirs, files in os.walk(react_folder, followlinks=True):
@@ -207,8 +218,7 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
                         if os.stat(location).st_mtime > js_mtime:
                             do_change = True
                             break
-        module_path = '.'.join(module.import_path.split(":")[0].split(".")[:-1])
-        folders.append((module_path, react_folder))
+        folders.append((module.relative_to, react_folder))
 
     if do_change:
         directory = None
