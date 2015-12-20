@@ -7,7 +7,7 @@ export default class Number extends WidgetBox {
     return (
       <div>
         <h1 className={styles.heading}>{this.props.title}</h1>
-        <span className={styles.value}>{this.props.data}</span>
+        <span className={styles.value}>{this.state.data}</span>
       </div>
     );
   }

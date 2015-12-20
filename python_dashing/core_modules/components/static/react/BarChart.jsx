@@ -8,7 +8,7 @@ export default class Number extends WidgetBox {
     return (
       <div>
         <h1 className={styles.heading}>{title}</h1>
-        <Bar data={data} width="600" height="250"/>
+        <Bar data={this.state.data} width="600" height="250"/>
       </div>
     )
   }
