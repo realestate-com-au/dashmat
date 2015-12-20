@@ -22,7 +22,25 @@ import sys
 mtime = 1450492585
 
 class ReactServer(object):
-    def prepare(self, compiled_static_folder):
+
+    def default_npm_deps(self):
+        return {
+              "babel-core": "^6.3.17"
+            , "babel-loader": "^6.2.0"
+            , "babel-polyfill": "^6.3.14"
+            , "babel-preset-react": "^6.3.13"
+            , "babel-preset-es2015": "^6.3.13"
+
+            , "css-loader": "^0.23.0"
+            , "style-loader": "^0.13.0"
+
+            , "react": "^0.14.3"
+            , "react-dom": "^0.14.3"
+
+            , "webpack": "^1.12.9"
+            }
+
+    def prepare(self, npm_deps, compiled_static_folder):
         ctxt = docker_context()
         harpoon_options = {
               "docker_context": ctxt
@@ -31,6 +49,9 @@ class ReactServer(object):
         self.harpoon = HarpoonSpec().harpoon_spec.normalise(Meta({}, []), harpoon_options)
 
         config_root = pkg_resources.resource_filename(__package__, "")
+
+        deps = self.default_npm_deps()
+        deps.update(npm_deps)
 
         image_name = "python-dashing-jsx-builder"
         everything = MergedOptions(dont_prefix=[dictobj])
@@ -66,23 +87,7 @@ class ReactServer(object):
                       , "content": json.dumps(
                           { "name": "python-dashing"
                           , "version": "0.1.0"
-                          , "dependencies":
-                            { "babel-cli": "^6.3.17"
-                            , "babel-core": "^6.3.17"
-                            , "babel-loader": "^6.2.0"
-                            , "babel-polyfill": "^6.3.14"
-                            , "babel-preset-es2015": "^6.3.13"
-                            , "babel-preset-react": "^6.3.13"
-                            , "chart.js": "^1.0.2"
-                            , "css-loader": "^0.23.0"
-                            , "expose-loader": "^0.7.1"
-                            , "react": "^0.14.3"
-                            , "react-chartjs": "^0.6.0"
-                            , "react-dom": "^0.14.3"
-                            , "style-loader": "^0.13.0"
-                            , "webpack": "^1.12.9"
-                            , "requirejs-babel-plugin": "^0.1.6"
-                            }
+                          , "dependencies": deps
                           }
                         )
                       , "mtime": mtime

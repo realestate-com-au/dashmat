@@ -36,6 +36,13 @@ class Module(object):
         """
         return {}
 
+    @classmethod
+    def npm_deps(self):
+        """
+        Returns a dictionary for package.json
+        """
+        return {}
+
     @property
     def register_checks(self):
         return []

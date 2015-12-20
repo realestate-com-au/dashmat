@@ -6,6 +6,7 @@ from input_algorithms.spec_base import NotSpecified
 from collections import namedtuple
 from textwrap import dedent
 import logging
+import json
 import six
 import sys
 
@@ -102,3 +103,11 @@ def run_checks(collector):
 def make_reactjs_server_docker_image(collector):
     """Create the docker image for the reactjs server"""
     ReactServer().prepare()
+
+@an_action
+def list_npm_modules(collector):
+    """List the npm modules that get installed in a docker image for the react server"""
+    default = ReactServer().default_npm_deps()
+    for _, module in sorted(collector.configuration["__active_modules__"].items()):
+        default.update(module.npm_deps())
+    print(json.dumps(default, indent=4, sort_keys=True))

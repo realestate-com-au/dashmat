@@ -94,7 +94,10 @@ class Server(object):
             self.register_routes(self._app)
 
             # Prepare the docker image for translating jsx into javascript
-            self.react_server.prepare(self.compiled_static_folder)
+            deps = {}
+            for _, module in sorted(self.modules.items()):
+                deps.update(module.npm_deps())
+            self.react_server.prepare(deps, self.compiled_static_folder)
         return self._app
 
     def register_routes(self, app):
