@@ -19,8 +19,9 @@ class Scheduler(object):
             key = "{0}_{1}".format(cron.replace(" ", "_").replace("/", "SLSH").replace("*", "STR"), func.__name__)
             iterable = croniter(cron, self.check_times.get(key, now))
             nxt = iterable.get_next(datetime.datetime)
-            if nxt > now and not force:
-                continue
+            if not force:
+                if nxt > now and key in self.check_times:
+                    continue
 
             log.info("Triggering cron: {0}.{1} '{2}'".format(module_name, func.__name__, cron))
             try:
