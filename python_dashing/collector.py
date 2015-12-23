@@ -36,9 +36,7 @@ class Collector(CollectorBase):
         python_dashing = args_dict.pop("python_dashing")
 
         self.configuration.update(
-            { "python_dashing": python_dashing
-            , "templates": {}
-            }
+            { "python_dashing": python_dashing }
         , source = "<args_dict>"
         )
 
@@ -82,7 +80,7 @@ class Collector(CollectorBase):
             first_pass_imported = {}
             for module_options in configuration["modules"].values():
                 if "import_path" in module_options:
-                    self.activate_module(None, module_options["import_path"], {}, found, first_pass_imported, {}, [])
+                    self.activate_module(None, module_options["import_path"], {}, found, first_pass_imported)
 
             by_name = dict((r[1], found[r]) for r in found)
             for thing in list(by_name.keys()):
