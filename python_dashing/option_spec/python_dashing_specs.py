@@ -56,8 +56,6 @@ class PythonDashing(dictobj):
           "debug": "Set debug capability"
         , "host": "The host to serve the server on"
         , "port": "The port to serve the server on"
-        , "dry_run": "Whether to do a dry run or not"
-        , "extra": "Sets the ``$@`` variable. Alternatively specify these after a ``--`` on the commandline"
         , "artifact": "Arbitrary argument"
         , "redis_host": "Location of redis host for storing values"
         , "config": "The config filename"
@@ -85,9 +83,7 @@ class PythonDashingSpec(object):
             , host = defaulted(formatted_string(), "localhost")
             , port = defaulted(formatted(integer_spec(), MergedOptionStringFormatter), 7546)
             , config = filename_spec()
-            , extra = defaulted(formatted_string(), "")
             , debug = defaulted(boolean(), False)
-            , dry_run = defaulted(boolean(), False)
             , artifact = formatted_string()
             , redis_host = formatted_string()
             , without_checks = defaulted(boolean(), False)

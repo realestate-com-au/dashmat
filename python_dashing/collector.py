@@ -36,8 +36,7 @@ class Collector(CollectorBase):
         python_dashing = args_dict.pop("python_dashing")
 
         self.configuration.update(
-            { "$@": python_dashing.get("extra", "")
-            , "python_dashing": python_dashing
+            { "python_dashing": python_dashing
             , "templates": {}
             }
         , source = "<args_dict>"
