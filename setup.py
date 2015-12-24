@@ -8,7 +8,7 @@ setup(
     , include_package_data = True
 
     , install_requires =
-      [ "docker-harpoon==0.6.5.5"
+      [ "docker-harpoon==0.6.5.7"
 
       , "six"
       , "croniter"
