@@ -9,6 +9,7 @@ from flask import send_from_directory, render_template, abort
 from werkzeug.routing import PathConverter
 from flask import Flask
 
+from functools import wraps
 from textwrap import dedent
 import pkg_resources
 import threading
@@ -107,7 +108,16 @@ class Server(object):
             regex = '.*?'
         app.url_map.converters['everything'] = EverythingConverter
 
-        make_view = lambda func: lambda *args, **kwargs : func(self.datastore, *args, **kwargs)
+        def make_view(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                res = func(self.datastore, *args, **kwargs)
+                if type(res) is dict:
+                    return flask.jsonify(res)
+                else:
+                    return res
+            return wrapper
+
         for name, (_, server) in self.servers.items():
             for route_name, func in server.routes:
                 view = make_view(func)
