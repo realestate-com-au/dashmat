@@ -14,9 +14,12 @@
   background-color: #e67e22;
   min-width: 300px;
   max-width: 600px;
-  min-height: 360px;
   margin: 5px;
   padding: 0;
+}
+
+.widget h3 {
+  margin-top: 0px;
 }
 
 body:global {
