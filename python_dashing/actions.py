@@ -104,9 +104,15 @@ def run_checks(collector):
 
     for name, module in modules.items():
         if chosen is None or name == chosen:
-            scheduler.register(module, name)
+            scheduler.register(module, module.make_server(module_options[name].server_options), name)
 
-    scheduler.run(force=True)
+    config_root = collector.configuration["config_root"]
+    python_dashing = collector.configuration["python_dashing"]
+    datastore = JsonDataStore(os.path.join(config_root, "data.json"))
+    if python_dashing.redis_host:
+        datastore = RedisDataStore(redis.Redis(python_dashing.redis_host))
+
+    scheduler.run(datastore, force=True)
 
 @an_action
 def make_reactjs_server_docker_image(collector):
