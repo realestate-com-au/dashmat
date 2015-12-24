@@ -106,15 +106,16 @@ class PythonDashingSpec(object):
         """Spec for modules"""
         valid_import_name = regexed("[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*:[a-zA-Z_][a-zA-Z_0-9]")
 
-        formatted_dict_or_string = lambda: match_spec(
+        formatted_dict_or_string_or_list = lambda: match_spec(
               (six.string_types, formatted(string_spec(), MergedOptionStringFormatter))
-            , fallback = lambda: dictof(string_spec(), formatted_dict_or_string())
+              , ((list, ), lambda: listof(formatted_dict_or_string_or_list()))
+            , fallback = lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
             )
 
         return dictof(string_spec(), create_spec(ModuleOptions
             , active = defaulted(boolean(), True)
             , import_path = required(formatted(valid_string_spec(valid_import_name), formatter=MergedOptionStringFormatter))
-            , server_options = dictof(string_spec(), formatted_dict_or_string())
+            , server_options = dictof(string_spec(), formatted_dict_or_string_or_list())
             ))
 
     @property
