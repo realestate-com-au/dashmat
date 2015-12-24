@@ -51,7 +51,7 @@ def serve(collector):
     for name, module in list(modules.items()):
         for dependency in module.dependencies():
             if dependency not in modules:
-                modules[dependency] = imported[dependency](dependency)
+                modules[dependency] = imported[dependency](dependency, dependency)
                 if dependency not in module_options:
                     module_options[dependency] = options(dependency, {})
 

@@ -219,7 +219,7 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
                         if os.stat(location).st_mtime > js_mtime:
                             do_change = True
                             break
-        folders.append((module.relative_to, react_folder))
+            folders.append((module.relative_to, react_folder))
 
     if do_change:
         directory = None

@@ -49,8 +49,8 @@ class ServerMixin:
         key = parsed.path[1:]
         return boto3.resource("s3").Object(bucket, key).get()["Body"].read()
 
-    def make_boto_session(self, account):
+    def make_boto_session(self, account, role_to_assume):
         sts = boto3.client("sts")
-        arn = "arn:aws:iam::{0}:{1}".format(account, self.role_to_assume)
+        arn = "arn:aws:iam::{0}:{1}".format(account, role_to_assume)
         creds = sts.assume_role(RoleArn=arn, RoleSessionName="python-dashing")['Credentials']
         return boto3.Session(aws_access_key_id=creds['AccessKeyId'], aws_secret_access_key=creds['SecretAccessKey'], aws_session_token=creds['SessionToken'])
