@@ -1,6 +1,9 @@
 <html>
 <head>
     <title>{{ title }}</title>
+    {% for extra_css in css %}
+    <link rel="stylesheet" type="text/css" href="{{ extra_css }}" >
+    {% endfor %}
     <script src="{{ dashboardjs }}"></script>
 </head>
 <body>

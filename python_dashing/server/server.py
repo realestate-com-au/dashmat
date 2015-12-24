@@ -144,10 +144,22 @@ class Server(object):
 
             return send_from_directory(os.path.dirname(location), os.path.basename(location))
 
+        @app.route("/static/css/<import_path>/<path:name>", methods=["GET"])
+        def static_css(import_path, name):
+            static_folder = pkg_resources.resource_filename(import_path, 'static')
+            static_file = os.path.join(static_folder, name)
+            if os.path.exists(static_file):
+                return send_from_directory(static_folder, name)
+            else:
+                raise abort(404)
+
         def make_dashboard(path, dashboard):
             def dashboard():
                 title = path.replace("/", ' ').replace('_', ' ').title()
-                return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title)
+                css = []
+                for module in self.modules.values():
+                    css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
+                return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title, css=css)
             dashboard.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
             return dashboard
 

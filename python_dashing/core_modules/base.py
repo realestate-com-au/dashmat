@@ -26,6 +26,13 @@ class Module(object):
         return '.'.join(self.import_path.split(":")[0].split(".")[:-1])
 
     @classmethod
+    def css(self):
+        """
+        Return a list of css to include in the request
+        """
+        return []
+
+    @classmethod
     def dependencies(self):
         """
         Return a list of dependency modules to load
