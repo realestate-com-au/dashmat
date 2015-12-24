@@ -8,6 +8,10 @@ export default class WidgetBox extends Component {
   }
 
   render() {
+    if (this.state.data === undefined) {
+      return <p>Waiting...</p>;
+    }
+
     const style = {
       backgroundColor: this.props.color,
     };
