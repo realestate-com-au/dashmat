@@ -201,7 +201,7 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
 
     Easy!
     """
-    javascript = dashboard.make_dashboard_module()
+    javascript = dashboard.make_dashboard_module(modules)
 
     dashboard_folder = os.path.join(compiled_static_folder, "dashboards")
     if not os.path.exists(dashboard_folder):

@@ -37,3 +37,7 @@ class MissingModule(PythonDashingError):
 
 class MissingServerOption(PythonDashingError):
     desc = "Missing server option"
+
+class UnknownModule(PythonDashingError):
+    desc = "Unknown module"
+

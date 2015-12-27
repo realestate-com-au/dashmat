@@ -5,12 +5,14 @@ The specifications are responsible for sanitation, validation and normalisation.
 """
 
 from python_dashing.formatter import MergedOptionStringFormatter
+from python_dashing.errors import UnknownModule
 
+from input_algorithms.many_item_spec import many_item_formatted_spec
 from input_algorithms.validators import regexed
 from input_algorithms.spec_base import (
       defaulted, boolean, string_spec, formatted, match_spec, valid_string_spec, listof, overridden
     , filename_spec, dictof, create_spec, dictionary_spec, required, integer_spec, Spec, Spec
-    , directory_spec
+    , directory_spec, optional_spec, or_spec
     )
 from input_algorithms.dictobj import dictobj
 
@@ -24,6 +26,49 @@ formatted_dict_or_string_or_list = lambda: match_spec(
     , ((list, ), lambda: listof(formatted_dict_or_string_or_list()))
     , fallback = lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
     )
+
+class import_line_spec(many_item_formatted_spec):
+    value_name = "Import line"
+    specs = [listof(string_spec()), string_spec()]
+    optional_specs = [string_spec()]
+
+    def create_result(self, imports, module_name, import_from, meta, val, dividers):
+        """Default permissions to rw"""
+        options = {"imports": imports, "module_name": module_name, "import_from": import_from}
+        return ImportLine.FieldSpec(formatter=MergedOptionStringFormatter).normalise(meta, options)
+
+class ImportLine(dictobj.Spec):
+    module_name = dictobj.Field(
+          string_spec
+        , formatted = True
+        , help = "The name of the module this import comes from"
+        )
+
+    imports = dictobj.Field(
+          string_spec
+        , formatted = True
+        , wrapper = listof
+        , help = "The modules that are imported"
+        )
+
+    import_from = dictobj.Field(
+          string_spec
+        , formatted = True
+        , default = "main.jsx"
+        , help = "The module in our import_path to import the imports from"
+        )
+
+    def import_line(self, modules):
+        if self.module_name not in modules:
+            raise UnknownModule(module=self.module_name, available=list(modules.keys()))
+
+        if len(self.imports) is 1:
+            imports = self.imports[0]
+        else:
+            imports = "{{{0}}}".format(", ".join(self.imports))
+
+        relative_to = modules[self.module_name].relative_to
+        return 'import {0} from "/modules/{1}/{2}"'.format(imports, relative_to, self.import_from)
 
 class Dashboard(dictobj.Spec):
     path = dictobj.Field(
@@ -43,11 +88,18 @@ class Dashboard(dictobj.Spec):
         )
 
     imports = dictobj.Field(
-          listof(string_spec())
+          lambda: or_spec(string_spec(), listof(import_line_spec()))
         , help = "es6 imports for the dashboard"
         )
 
-    def make_dashboard_module(self):
+    def make_dashboard_module(self, modules):
+        imports = []
+        for imprt in self.imports:
+            if hasattr(imprt, "import_line"):
+                imports.append(imprt.import_line(modules))
+            else:
+                imports.append(imprt)
+
         return dedent("""
             import styles from "/modules/python_dashing.server/Dashboard.css";
             import React, {{Component}} from 'react';
@@ -70,7 +122,7 @@ class Dashboard(dictobj.Spec):
                 var element = React.createElement(Dashboard);
                 ReactDOM.render(element, document.getElementById('page-content'));
             }});
-        """).format(imports="\n".join(self.imports), layout=self.layout, es6=self.es6)
+        """).format(imports="\n".join(imports), layout=self.layout, es6=self.es6)
 
 class PythonDashing(dictobj.Spec):
     debug = dictobj.Field(
