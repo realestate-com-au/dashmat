@@ -17,14 +17,35 @@ from input_algorithms.dictobj import dictobj
 from textwrap import dedent
 import six
 
-class Dashboard(dictobj):
-    fields = {
-          'path': "Url path to the dashboard"
+valid_import_name = regexed("[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*:[a-zA-Z_][a-zA-Z_0-9]")
 
-        , 'es6': "Extra es6 javascript to add to the dashboard module"
-        , 'layout': "Reactjs xml for the layout of the dashboard"
-        , 'imports': "es6 imports for the dashboard"
-        }
+formatted_dict_or_string_or_list = lambda: match_spec(
+      (six.string_types, formatted(string_spec(), MergedOptionStringFormatter))
+    , ((list, ), lambda: listof(formatted_dict_or_string_or_list()))
+    , fallback = lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
+    )
+
+class Dashboard(dictobj.Spec):
+    path = dictobj.Field(
+          overridden("{_key_name_1}")
+        , formatted = True
+        , help = "Url path to the dashboard"
+        )
+
+    es6 = dictobj.Field(
+          string_spec
+        , help = "Extra es6 javascript to add to the dashboard module"
+        )
+
+    layout = dictobj.Field(
+          string_spec
+        , help = "Reactjs xml for the laytout of the dashboard"
+        )
+
+    imports = dictobj.Field(
+          listof(string_spec())
+        , help = "es6 imports for the dashboard"
+        )
 
     def make_dashboard_module(self):
         return dedent("""
@@ -51,77 +72,99 @@ class Dashboard(dictobj):
             }});
         """).format(imports="\n".join(self.imports), layout=self.layout, es6=self.es6)
 
-class PythonDashing(dictobj):
-    fields = {
-          "debug": "Set debug capability"
-        , "host": "The host to serve the server on"
-        , "port": "The port to serve the server on"
-        , "artifact": "Arbitrary argument"
-        , "redis_host": "Location of redis host for storing values"
-        , "config": "The config filename"
-        , "without_checks": "Whether to run the cronned checks or not"
-        , "dynamic_dashboard_js": "Whether to use docker to generate dashboard js at runtime"
-        , "compiled_static_prep": "Folder for preparing webpack bundles"
-        , "compiled_static_folder": "Folder to cache compiled javascript"
-        }
+class PythonDashing(dictobj.Spec):
+    debug = dictobj.Field(
+          boolean
+        , default = False
+        , formatted = True
+        , help = "Set debug capability"
+        )
 
-class ModuleOptions(dictobj):
-    fields = {
-          "active": "Is this module active?"
-        , "import_path": "Import path to the module to load"
-        , "server_options": "Options to pass into creating the Server class"
-        }
+    host = dictobj.Field(
+          string_spec
+        , default = "localhost"
+        , formatted = True
+        , help = "The host to serve the server on"
+        )
 
-class PythonDashingSpec(object):
-    """Knows about python_dashing specific configuration"""
+    port = dictobj.Field(
+          integer_spec
+        , default = 7546
+        , formatted = True
+        , help = "The port to serve the server on"
+        )
 
-    @property
-    def python_dashing_spec(self):
-        """Spec for python_dashing options"""
-        formatted_string = lambda: formatted(string_spec(), MergedOptionStringFormatter)
-        return create_spec(PythonDashing
-            , host = defaulted(formatted_string(), "localhost")
-            , port = defaulted(formatted(integer_spec(), MergedOptionStringFormatter), 7546)
-            , config = filename_spec()
-            , debug = defaulted(boolean(), False)
-            , artifact = formatted_string()
-            , redis_host = formatted_string()
-            , without_checks = defaulted(boolean(), False)
-            , dynamic_dashboard_js = defaulted(boolean(), True)
-            , compiled_static_prep = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_prep"), MergedOptionStringFormatter))
-            , compiled_static_folder = directory_spec(formatted(defaulted(string_spec(), "{config_root}/compiled_static"), MergedOptionStringFormatter))
-            )
+    artifact = dictobj.Field(
+          string_spec
+        , formatted = True
+        , help = "Arbitrary argument"
+        )
 
-    @property
-    def templates_spec(self):
-        """Spec for templates"""
-        return dictof(string_spec(), dictionary_spec())
+    redis_host = dictobj.Field(
+          string_spec
+        , formatted = True
+        , help = "Location of redis host for storing values"
+        )
 
-    @property
-    def modules_spec(self):
-        """Spec for modules"""
-        valid_import_name = regexed("[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*:[a-zA-Z_][a-zA-Z_0-9]")
+    config = dictobj.Field(
+          filename_spec
+        , help = "The config filename"
+        )
 
-        formatted_dict_or_string_or_list = lambda: match_spec(
-              (six.string_types, formatted(string_spec(), MergedOptionStringFormatter))
-              , ((list, ), lambda: listof(formatted_dict_or_string_or_list()))
-            , fallback = lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
-            )
+    without_checks = dictobj.Field(
+          boolean
+        , default = False
+        , formatted = True
+        , help = "Whether to run the cronned checks or not"
+        )
 
-        return dictof(string_spec(), create_spec(ModuleOptions
-            , active = defaulted(boolean(), True)
-            , import_path = required(formatted(valid_string_spec(valid_import_name), formatter=MergedOptionStringFormatter))
-            , server_options = dictof(string_spec(), formatted_dict_or_string_or_list())
-            ))
+    dynamic_dashboard_js = dictobj.Field(
+          boolean
+        , default = True
+        , formatted = True
+        , help = "Whether to use docker to generate dashboard js at runtime"
+        )
 
-    @property
-    def dashboards_spec(self):
-        return dictof(string_spec()
-            , create_spec(Dashboard
-                , path = formatted(overridden("{_key_name_1}"), MergedOptionStringFormatter)
-                , imports = listof(string_spec())
-                , es6 = string_spec()
-                , layout = string_spec()
-                )
-            )
+    compiled_static_prep = dictobj.Field(
+          string_spec
+        , default = "{config_root}/compiled_prep"
+        , formatted = True
+        , wrapper = directory_spec
+        , help = "Folder for preparing webpack bundles"
+        )
+
+    compiled_static_folder = dictobj.Field(
+          string_spec
+        , default = "{config_root}/compiled_static"
+        , formatted = True
+        , wrapper = directory_spec
+        , help = "Folder to cache compiled javascript"
+        )
+
+class ModuleOptions(dictobj.Spec):
+    active = dictobj.Field(
+          boolean
+        , default = True
+        , formatted = True
+        , help = "Is this module active?"
+        )
+
+    import_path = dictobj.Field(
+          valid_string_spec(valid_import_name)
+        , formatted = True
+        , wrapper = required
+        , help = "Import path to the module to load"
+        )
+
+    server_options = dictobj.Field(
+          lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
+        , help = "Options to pass into creating the Server class"
+        )
+
+PythonDashingConverters = lambda: dict(
+      modules = dictof(string_spec(), ModuleOptions.FieldSpec(formatter=MergedOptionStringFormatter))
+    , templates = dictof(string_spec(), dictionary_spec())
+    , dashboards = dictof(string_spec(), Dashboard.FieldSpec(formatter=MergedOptionStringFormatter))
+    , python_dashing = PythonDashing.FieldSpec(formatter=MergedOptionStringFormatter)
+    )
 

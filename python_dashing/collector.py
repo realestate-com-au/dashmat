@@ -2,7 +2,7 @@
 Collects then parses configuration files and verifies that they are valid.
 """
 
-from python_dashing.option_spec.python_dashing_specs import PythonDashingSpec
+from python_dashing.option_spec.python_dashing_specs import PythonDashingConverters
 from python_dashing.errors import BadConfiguration, BadYaml, BadImport
 from python_dashing.importer import import_module
 
@@ -60,20 +60,18 @@ class Collector(CollectorBase):
 
     def extra_configuration_collection(self, configuration):
         """Hook to do any extra configuration collection or converter registration"""
-        python_dashing_spec = PythonDashingSpec()
         imported = {}
         registered = {}
         active_modules = {}
 
-        for thing in ['python_dashing', 'templates', 'modules', 'dashboards']:
-            def make_converter(thing):
-                def converter(p, v):
-                    log.info("Converting %s", p)
-                    meta = Meta(p.configuration, [(thing, "")])
-                    configuration.converters.started(p)
-                    return getattr(python_dashing_spec, "{0}_spec".format(thing)).normalise(meta, v)
-                return converter
-            configuration.add_converter(Converter(convert=make_converter(thing), convert_path=[thing]))
+        def make_converter(name, spec):
+            def converter(p, v):
+                log.info("Converting %s", p)
+                meta = Meta(p.configuration, [(name, "")])
+                configuration.converters.started(p)
+                return spec.normalise(meta, v)
+            return converter
+        configuration.install_converters(PythonDashingConverters(), make_converter)
 
         if "modules" in configuration and type(configuration["modules"]) is dict:
             found = {}
