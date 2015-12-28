@@ -164,14 +164,31 @@ class Server(object):
                 raise abort(404)
 
         def make_dashboard(path, dashboard):
-            def dashboard():
+            def dashboard_view():
                 title = path.replace("/", ' ').replace('_', ' ').title()
                 css = []
-                for module in self.modules.values():
-                    css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
+                enabled_modules = list(dashboard.enabled_modules)
+                for imprt in dashboard.imports:
+                    if hasattr(imprt, "module_name"):
+                        enabled_modules.append(imprt.module_name)
+
+                def add_dependencies():
+                    added = False
+                    for module_name in enabled_modules:
+                        for dependency in self.modules[module_name].dependencies():
+                            if dependency not in enabled_modules:
+                                enabled_modules.append(dependency)
+                                added = True
+                    if added:
+                        add_dependencies()
+                add_dependencies()
+
+                for module_name, module in self.modules.items():
+                    if module_name in enabled_modules:
+                        css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
                 return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title, css=css)
-            dashboard.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
-            return dashboard
+            dashboard_view.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
+            return dashboard_view
 
         for path, dashboard in self.dashboards.items():
             app.route(path, methods=["GET"])(make_dashboard(path, dashboard))

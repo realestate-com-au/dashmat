@@ -92,6 +92,13 @@ class Dashboard(dictobj.Spec):
         , help = "es6 imports for the dashboard"
         )
 
+    enabled_modules = dictobj.Field(
+          string_spec
+        , formatted = True
+        , wrapper = listof
+        , help = "The modules to enable for this dashboard"
+        )
+
     def make_dashboard_module(self, modules):
         imports = []
         for imprt in self.imports:
