@@ -13,6 +13,7 @@ from option_merge.collector import Collector as CollectorBase
 from option_merge import MergedOptions
 from option_merge import Converter
 
+from collections import namedtuple
 import pkg_resources
 import logging
 import yaml
@@ -98,8 +99,38 @@ class Collector(CollectorBase):
                     self.activate_module(name, module.import_path, active_modules, registered, imported)
 
         configuration['__imported__'] = imported
-        configuration['__registered__'] = [name for _, name in registered.keys()]
+        configuration['__registered__'] = list(registered.values())
         configuration['__active_modules__'] = active_modules
+
+    def extra_prepare_after_activation(self, configuration, args_dict):
+        imported = configuration['__imported__']
+        registered = dict((name, name) for name in configuration['__registered__'])
+        active_modules = configuration['__active_modules__']
+        module_options = configuration["modules"]
+
+        options = namedtuple("Options", ["import_path", "server_options"])
+        for dashboard in configuration["dashboards"].values():
+            for imprt in dashboard.imports:
+                if hasattr(imprt, "module_name") and type(imprt.module_name) is dict:
+                    module_name = imprt.module_name["import_path"]
+                    if module_name not in active_modules:
+                        self.activate_module(module_name, module_name, active_modules, registered, imported)
+                        if module_name not in module_options:
+                            module_options[module_name] = options(module_name, {})
+        configuration['__registered__'] = list(registered.values())
+
+        def find_deps():
+            added = False
+            for name, module in list(active_modules.items()):
+                for dependency in module.dependencies():
+                    if dependency not in active_modules:
+                        added = True
+                        active_modules[dependency] = imported[dependency](dependency, dependency)
+                        if dependency not in module_options:
+                            module_options[dependency] = options(dependency, {})
+            if added:
+                find_deps()
+        find_deps()
 
     def activate_module(self, name, import_path, active_modules, registered, imported):
         if import_path not in imported:

@@ -4,7 +4,6 @@ from python_dashing.server.react import ReactServer
 from python_dashing.scheduler import Scheduler
 
 from input_algorithms.spec_base import NotSpecified
-from collections import namedtuple
 from textwrap import dedent
 import logging
 import redis
@@ -42,18 +41,9 @@ def list_tasks(collector):
 @an_action
 def serve(collector):
     modules = collector.configuration["__active_modules__"]
-    imported = collector.configuration["__imported__"]
     dashboards = collector.configuration["dashboards"]
     module_options = collector.configuration["modules"]
     python_dashing = collector.configuration["python_dashing"]
-
-    options = namedtuple("Options", ["import_path", "server_options"])
-    for name, module in list(modules.items()):
-        for dependency in module.dependencies():
-            if dependency not in modules:
-                modules[dependency] = imported[dependency](dependency, dependency)
-                if dependency not in module_options:
-                    module_options[dependency] = options(dependency, {})
 
     config_root = collector.configuration["config_root"]
     datastore = JsonDataStore(os.path.join(config_root, "data.json"))

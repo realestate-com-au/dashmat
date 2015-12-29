@@ -12,7 +12,7 @@ from input_algorithms.validators import regexed
 from input_algorithms.spec_base import (
       defaulted, boolean, string_spec, formatted, match_spec, valid_string_spec, listof, overridden
     , filename_spec, dictof, create_spec, dictionary_spec, required, integer_spec, Spec, Spec
-    , directory_spec, optional_spec, or_spec
+    , directory_spec, optional_spec, or_spec, set_options
     )
 from input_algorithms.dictobj import dictobj
 
@@ -29,7 +29,7 @@ formatted_dict_or_string_or_list = lambda: match_spec(
 
 class import_line_spec(many_item_formatted_spec):
     value_name = "Import line"
-    specs = [listof(string_spec()), string_spec()]
+    specs = [listof(string_spec()), or_spec(string_spec(), set_options(import_path=string_spec()))]
     optional_specs = [string_spec()]
 
     def create_result(self, imports, module_name, import_from, meta, val, dividers):
@@ -37,9 +37,28 @@ class import_line_spec(many_item_formatted_spec):
         options = {"imports": imports, "module_name": module_name, "import_from": import_from}
         return ImportLine.FieldSpec(formatter=MergedOptionStringFormatter).normalise(meta, options)
 
+class dashboard_spec(Spec):
+    def normalise(self, meta, val):
+        val = dictionary_spec().normalise(meta, val)
+        if val.get("is_index"):
+            index_items = []
+            for path, dashboard in meta.everything["dashboards"].items():
+                if not dashboard.get("is_index"):
+                    index_items.append('<IndexItem href="{0}" desc="{1}" />'.format(path, dashboard.get("description")))
+
+            val['layout'] = dedent("""
+                <Index>
+                    {0}
+                </Index>
+            """.format('\n'.join(index_items)))
+
+            val['imports'] = [[["Index", "IndexItem"], {"import_path": "python_dashing.core_modules.index.main:Index"}]]
+
+        return Dashboard.FieldSpec(formatter=MergedOptionStringFormatter).normalise(meta, val)
+
 class ImportLine(dictobj.Spec):
     module_name = dictobj.Field(
-          string_spec
+          lambda: or_spec(string_spec(), set_options(import_path=string_spec()))
         , formatted = True
         , help = "The name of the module this import comes from"
         )
@@ -59,18 +78,29 @@ class ImportLine(dictobj.Spec):
         )
 
     def import_line(self, modules):
-        if self.module_name not in modules:
-            raise UnknownModule(module=self.module_name, available=list(modules.keys()))
+        module_name = self.module_name
+        if type(module_name) is dict:
+            module_name = self.module_name['import_path']
+
+        if module_name not in modules:
+            raise UnknownModule(module=module_name, available=list(modules.keys()))
 
         if len(self.imports) is 1:
             imports = self.imports[0]
         else:
             imports = "{{{0}}}".format(", ".join(self.imports))
 
-        relative_to = modules[self.module_name].relative_to
+        relative_to = modules[module_name].relative_to
         return 'import {0} from "/modules/{1}/{2}"'.format(imports, relative_to, self.import_from)
 
 class Dashboard(dictobj.Spec):
+    description = dictobj.Field(
+          string_spec
+        , default = "{_key_name_1} Dashboard"
+        , formatted = True
+        , help = "Description to show up in the index"
+        )
+
     path = dictobj.Field(
           overridden("{_key_name_1}")
         , formatted = True
@@ -80,6 +110,12 @@ class Dashboard(dictobj.Spec):
     es6 = dictobj.Field(
           string_spec
         , help = "Extra es6 javascript to add to the dashboard module"
+        )
+
+    is_index = dictobj.Field(
+          boolean
+        , formatted = True
+        , help = "Whether this page is an index or not"
         )
 
     layout = dictobj.Field(
@@ -223,7 +259,7 @@ class ModuleOptions(dictobj.Spec):
 PythonDashingConverters = lambda: dict(
       modules = dictof(string_spec(), ModuleOptions.FieldSpec(formatter=MergedOptionStringFormatter))
     , templates = dictof(string_spec(), dictionary_spec())
-    , dashboards = dictof(string_spec(), Dashboard.FieldSpec(formatter=MergedOptionStringFormatter))
+    , dashboards = dictof(string_spec(), dashboard_spec())
     , python_dashing = PythonDashing.FieldSpec(formatter=MergedOptionStringFormatter)
     )
 

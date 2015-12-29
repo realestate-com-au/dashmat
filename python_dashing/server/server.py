@@ -175,6 +175,8 @@ class Server(object):
                 def add_dependencies():
                     added = False
                     for module_name in enabled_modules:
+                        if type(module_name) is dict:
+                            module_name = module_name['import_path']
                         for dependency in self.modules[module_name].dependencies():
                             if dependency not in enabled_modules:
                                 enabled_modules.append(dependency)
