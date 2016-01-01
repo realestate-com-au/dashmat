@@ -12,7 +12,7 @@ from input_algorithms.validators import regexed
 from input_algorithms.spec_base import (
       defaulted, boolean, string_spec, formatted, match_spec, valid_string_spec, listof, overridden
     , filename_spec, dictof, create_spec, dictionary_spec, required, integer_spec, Spec, Spec
-    , directory_spec, optional_spec, or_spec, set_options
+    , directory_spec, optional_spec, or_spec, set_options, delayed
     )
 from input_algorithms.dictobj import dictobj
 
@@ -253,6 +253,7 @@ class ModuleOptions(dictobj.Spec):
 
     server_options = dictobj.Field(
           lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
+        , wrapper = delayed
         , help = "Options to pass into creating the Server class"
         )
 

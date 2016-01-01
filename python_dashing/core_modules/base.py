@@ -12,6 +12,8 @@ class Module(object):
         self.import_path = import_path
 
     def make_server(self, server_kwargs):
+        if callable(server_kwargs):
+            server_kwargs = server_kwargs()
         return self.server_kls(self, **server_kwargs)
 
     @property
