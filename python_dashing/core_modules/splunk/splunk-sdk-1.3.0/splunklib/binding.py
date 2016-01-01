@@ -25,11 +25,11 @@ If you want a friendlier interface to the Splunk REST API, use the
 """
 
 # import httplib
-import http.client as httplib
+from six.moves import http_client as httplib
+from six.moves import urllib
 import logging
 import socket
 import ssl
-import urllib
 import io
 
 from datetime import datetime
@@ -89,7 +89,7 @@ class UrlEncoded(str):
 
     Manually tracking whether strings are URL encoded can be difficult. Avoid
     calling ``urllib.parse.quote`` to replace special characters with escapes. When
-    you receive a URL-encoded string, *do* use ``urllib.unquote`` to replace
+    you receive a URL-encoded string, *do* use ``urllib.parse.unquote`` to replace
     escapes with single characters. Then, wrap any string you want to use as a
     URL in ``UrlEncoded``. Note that because the ``UrlEncoded`` class is
     idempotent, making multiple calls to it is OK.
@@ -160,7 +160,7 @@ class UrlEncoded(str):
         """
         raise TypeError("Cannot interpolate into a UrlEncoded object.")
     def __repr__(self):
-        return "UrlEncoded(%s)" % repr(urllib.unquote(str(self)))
+        return "UrlEncoded(%s)" % repr(urllib.parse.unquote(str(self)))
 
 @contextmanager
 def _handle_auth_error(msg):
@@ -948,9 +948,11 @@ def _encode(**kwargs):
 
 # Crack the given url into (scheme, host, port, path)
 def _spliturl(url):
-    scheme, opaque = urllib.request.splittype(url)
-    netloc, path = urllib.request.splithost(opaque)
-    host, port = urllib.request.splitport(netloc)
+    parsed = urllib.parse.urlparse(url)
+    host = parsed.netloc.split(":")[0]
+    port = parsed.port
+    scheme = parsed.scheme
+    path = parsed.path
     # Strip brackets if its an IPv6 address
     if host.startswith('[') and host.endswith(']'): host = host[1:-1]
     if port is None: port = DEFAULT_PORT
