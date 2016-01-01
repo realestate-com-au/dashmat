@@ -74,29 +74,21 @@ class Collector(CollectorBase):
             return converter
         configuration.install_converters(PythonDashingConverters(), make_converter)
 
-        if "modules" in configuration and type(configuration["modules"]) is dict:
-            found = {}
-            first_pass_imported = {}
-            for module_options in configuration["modules"].values():
-                if "import_path" in module_options:
-                    self.activate_module(None, module_options["import_path"], {}, found, first_pass_imported)
-
-            by_name = dict((r[1], found[r]) for r in found)
-            for thing in list(by_name.keys()):
-                def make_converter(thing):
-                    def converter(p, v):
-                        log.info("Converting %s", p)
-                        meta = Meta(p.configuration, [(thing, "")])
-                        configuration.converters.started(p)
-                        return by_name[thing].normalise(meta, v)
-                    return converter
-                configuration.add_converter(Converter(convert=make_converter(thing), convert_path=[thing]))
-
-        configuration.converters.activate()
         if "modules" in configuration:
-            for name, module in configuration["modules"].items():
-                if module.active:
-                    self.activate_module(name, module.import_path, active_modules, registered, imported)
+            for module_name, module_options in configuration["modules"].items():
+                if "import_path" in module_options:
+                    self.activate_module(module_name, module_options["import_path"], active_modules, registered, imported)
+
+        for (_, thing), spec in sorted(registered.items()):
+            def make_converter(thing, spec):
+                def converter(p, v):
+                    log.info("Converting %s", p)
+                    meta = Meta(p.configuration, [(thing, "")])
+                    configuration.converters.started(p)
+                    return spec.normalise(meta, v)
+                return converter
+            converter = make_converter(thing, spec)
+            configuration.add_converter(Converter(convert=converter, convert_path=[thing]))
 
         configuration['__imported__'] = imported
         configuration['__registered__'] = list(registered.values())
