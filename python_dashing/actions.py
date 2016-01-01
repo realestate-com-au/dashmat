@@ -94,7 +94,8 @@ def run_checks(collector):
 
     for name, module in modules.items():
         if chosen is None or name == chosen:
-            scheduler.register(module, module.make_server(module_options[name].server_options), name)
+            server = module.make_server(module_options[name].server_options)
+            scheduler.register(module, server, name)
 
     config_root = collector.configuration["config_root"]
     python_dashing = collector.configuration["python_dashing"]

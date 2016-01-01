@@ -3,7 +3,7 @@ from python_dashing.core_modules.base import Module
 class BootStrap(Module):
 
     @classmethod
-    def css(self):
+    def css(kls):
         yield "bootstrap.css"
         yield "bootstrap-theme.min.css"
 
