@@ -14,6 +14,8 @@ export default class WidgetBox extends Component {
 
     const style = {
       backgroundColor: this.props.color,
+      width: Math.ceil(this.state.width) + "px",
+      height: Math.ceil(this.state.height) + "px"
     };
     let className = styles.widget;
     if (this.props.className) {
