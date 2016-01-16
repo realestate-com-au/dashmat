@@ -8,7 +8,7 @@ setup(
     , include_package_data = True
 
     , install_requires =
-      [ "docker-harpoon==0.6.6.7"
+      [ "docker-harpoon==0.6.6.8"
 
       , "six"
       , "redis"
