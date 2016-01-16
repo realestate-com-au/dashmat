@@ -1,2 +1,3 @@
 recursive-include python_dashing/server/templates *.html
 recursive-include python_dashing/server/static/js-build *.js
+recursive-include python_dashing/server/static/react *.css
