@@ -8,9 +8,10 @@ setup(
     , include_package_data = True
 
     , install_requires =
-      [ "docker-harpoon==0.6.6.6"
+      [ "docker-harpoon==0.6.6.7"
 
       , "six"
+      , "redis"
       , "croniter"
       , "requests"
       , "slumber"
