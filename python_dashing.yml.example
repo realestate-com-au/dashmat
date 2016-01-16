@@ -1,10 +1,16 @@
-dashboards:
-  /:
-    layout:
-      <Number title="test" data={24} datasource="/data/components/number" every={1000} />
-    imports:
-      - 'import Number from "/modules/python_dashing.core_modules.components/Number.jsx";'
+---
 
 modules:
   components:
     import_path: python_dashing.core_modules.components.main:Components
+
+dashboards:
+  /:
+    is_index: true
+
+  /number:
+    description: A number!
+    imports:
+      - [[Number], 'components']
+    layout:
+      <Number title="test" data={24} datasource="/data/components/number" every={1000} />
