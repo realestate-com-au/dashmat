@@ -13,10 +13,19 @@ export default class WidgetBox extends Component {
     }
 
     const style = {
-      backgroundColor: this.props.color,
-      width: Math.ceil(this.state.width) + "px",
-      height: Math.ceil(this.state.height) + "px"
-    };
+      backgroundColor: this.props.color
+    }
+
+    if (this.state.width !== undefined) {
+      style.width = Math.ceil(this.state.width) + "px";
+    } else {
+      style["max-width"] = "200px";
+    }
+
+    if (this.state.height !== undefined) {
+      style.height = Math.ceil(this.state.height) + "px";
+    }
+
     let className = styles.widget;
     if (this.props.className) {
       className += ' ' + this.props.className;
