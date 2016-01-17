@@ -4,7 +4,7 @@ import styles from '/modules/python_dashing.server/Dashboard.css';
 export default class WidgetBox extends Component {
   constructor(props) {
     super(props);
-    this.state = {data: this.props.data};
+    this.state = {data: this.props.data, width: this.props.width, height: this.props.height};
   }
 
   render() {
@@ -57,6 +57,8 @@ export default class WidgetBox extends Component {
 }
 
 WidgetBox.propTypes = {
+  width: PropTypes.any,
+  height: PropTypes.any,
   every: PropTypes.number,
   children: PropTypes.array,
   color: PropTypes.string,
