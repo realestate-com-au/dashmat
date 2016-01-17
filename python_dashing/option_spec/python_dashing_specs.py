@@ -85,11 +85,7 @@ class ImportLine(dictobj.Spec):
         if module_name not in modules:
             raise UnknownModule(module=module_name, available=list(modules.keys()))
 
-        if len(self.imports) is 1:
-            imports = self.imports[0]
-        else:
-            imports = "{{{0}}}".format(", ".join(self.imports))
-
+        imports = "{{{0}}}".format(", ".join(self.imports))
         relative_to = modules[module_name].relative_to
         return 'import {0} from "/modules/{1}/{2}"'.format(imports, relative_to, self.import_from)
 

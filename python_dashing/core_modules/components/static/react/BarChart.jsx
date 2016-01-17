@@ -15,7 +15,7 @@ export default class BarChart extends WidgetBox {
 }
 
 BarChart.propTypes = {
-  ...WidgetBox.propTypes
+  ...WidgetBox.propTypes,
 
   data: PropTypes.shape({
     labels: PropTypes.array,
