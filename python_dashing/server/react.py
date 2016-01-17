@@ -92,6 +92,7 @@ class ReactServer(object):
                           , "version": "0.1.0"
                           , "dependencies": collections.OrderedDict(sorted(deps.items()))
                           }
+                        , sort_keys=True
                         )
                       , "mtime": mtime
                       }
