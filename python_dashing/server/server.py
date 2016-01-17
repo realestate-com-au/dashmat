@@ -108,19 +108,20 @@ class Server(object):
             regex = '.*?'
         app.url_map.converters['everything'] = EverythingConverter
 
-        def make_view(func):
+        def make_view(func, module, module_name):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                res = func(self.datastore, *args, **kwargs)
+                ds = self.datastore.prefixed("{0}-{1}".format(module.relative_to, module_name))
+                res = func(ds, *args, **kwargs)
                 if type(res) is dict:
                     return flask.jsonify(res)
                 else:
                     return res
             return wrapper
 
-        for name, (_, server) in self.servers.items():
+        for name, (module, server) in self.servers.items():
             for route_name, func in server.routes:
-                view = make_view(func)
+                view = make_view(func, module, name)
                 view.__name__ = "server_route_{0}_{1}".format(name, route_name)
                 app.route("/data/{0}/{1}".format(name, route_name))(view)
 

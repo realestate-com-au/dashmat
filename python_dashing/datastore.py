@@ -16,7 +16,7 @@ class RedisDataStore(object):
         self.redis.set("{0}-{1}".format(self.prefix, key), json.dumps({"value": value}))
 
     def retrieve(self, key):
-        return json.loads(self.redis.get("{0}-{1}".format(self.prefix, key)))["value"]
+        return json.loads(self.redis.get("{0}-{1}".format(self.prefix, key)).decode('utf-8'))["value"]
 
 class JsonDataStore(object):
     def __init__(self, location, prefix=""):
