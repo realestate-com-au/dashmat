@@ -35,11 +35,14 @@ class ReactServer(object):
 
             , "css-loader": "^0.23.0"
             , "style-loader": "^0.13.0"
+            , "imports-loader": "^0.6.5"
+            , "exports-loader": "^0.6.2"
 
             , "react": "^0.14.3"
             , "react-dom": "^0.14.3"
 
             , "webpack": "^1.12.9"
+            , "whatwg-fetch": "^0.10.1"
             }
 
     def prepare(self, npm_deps, compiled_static_folder):
