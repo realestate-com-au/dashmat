@@ -7,7 +7,7 @@ log = logging.getLogger("python_dashing.datastore")
 class RedisDataStore(object):
     def __init__(self, redis, prefix=""):
         self.prefix = prefix
-        self.redis_host = redis_host
+        self.redis = redis
 
     def prefixed(self, prefix):
         return RedisDataStore(self.redis, prefix=prefix)
