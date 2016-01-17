@@ -1,5 +1,8 @@
 *.pyc
 *~
+compiled_static/
+compiled_prep/
+data.json
 .ropeproject/
 *.egg-info/
 dist/
