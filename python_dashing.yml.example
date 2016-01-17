@@ -5,9 +5,6 @@ modules:
     import_path: python_dashing.core_modules.components.main:Components
 
 dashboards:
-  /:
-    is_index: true
-
   /number:
     description: A number!
     imports:

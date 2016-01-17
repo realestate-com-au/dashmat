@@ -26,6 +26,13 @@ formatted_dict_or_string_or_list = lambda: match_spec(
     , fallback = lambda: dictof(string_spec(), formatted_dict_or_string_or_list())
     )
 
+class dashboards_spec(Spec):
+    def normalise(self, meta, val):
+        val = dictionary_spec().normalise(meta, val).as_dict()
+        if '/' not in val:
+            val['/'] = {"is_index": True}
+        return dictof(string_spec(), dashboard_spec()).normalise(meta, val)
+
 class dashboard_spec(Spec):
     def normalise(self, meta, val):
         val = dictionary_spec().normalise(meta, val)
@@ -138,7 +145,7 @@ class ModuleOptions(dictobj.Spec):
 PythonDashingConverters = lambda: dict(
       modules = dictof(string_spec(), ModuleOptions.FieldSpec(formatter=MergedOptionStringFormatter))
     , templates = dictof(string_spec(), dictionary_spec())
-    , dashboards = dictof(string_spec(), dashboard_spec())
+    , dashboards = dashboards_spec()
     , python_dashing = PythonDashing.FieldSpec(formatter=MergedOptionStringFormatter)
     )
 
