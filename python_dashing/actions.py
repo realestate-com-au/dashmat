@@ -106,11 +106,6 @@ def run_checks(collector):
     scheduler.run(datastore, force=True)
 
 @an_action
-def make_reactjs_server_docker_image(collector):
-    """Create the docker image for the reactjs server"""
-    ReactServer().prepare()
-
-@an_action
 def list_npm_modules(collector, no_print=False):
     """List the npm modules that get installed in a docker image for the react server"""
     default = ReactServer().default_npm_deps()
