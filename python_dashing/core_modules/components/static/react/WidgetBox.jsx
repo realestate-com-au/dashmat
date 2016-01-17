@@ -17,13 +17,21 @@ export default class WidgetBox extends Component {
     }
 
     if (this.state.width !== undefined) {
-      style.width = Math.ceil(this.state.width) + "px";
+      if (this.state.width == "auto") {
+        style.width = "auto";
+      } else {
+        style.width = Math.ceil(this.state.width) + "px";
+      }
     } else {
-      style["max-width"] = "200px";
+      style.maxWidth = "200px";
     }
 
     if (this.state.height !== undefined) {
-      style.height = Math.ceil(this.state.height) + "px";
+      if (this.state.height == "auto") {
+        style.height = "auto";
+      } else {
+        style.height = Math.ceil(this.state.height) + "px";
+      }
     }
 
     let className = styles.widget;
