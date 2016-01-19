@@ -1,7 +1,7 @@
-recursive-include python_dashing/server/templates *.html
-recursive-include python_dashing/server/static/js-build *.js
-recursive-include python_dashing/server/static/react *.css
-recursive-include python_dashing/core_modules/*/static/react *.css *.jsx *.js
-recursive-include python_dashing/core_modules/*/static *.css *.js
-recursive-include python_dashing/core_modules/splunk/* PKG-INFO
-recursive-include python_dashing/core_modules/splunk/* *.py
+recursive-include dashmat/server/templates *.html
+recursive-include dashmat/server/static/js-build *.js
+recursive-include dashmat/server/static/react *.css
+recursive-include dashmat/core_modules/*/static/react *.css *.jsx *.js
+recursive-include dashmat/core_modules/*/static *.css *.js
+recursive-include dashmat/core_modules/splunk/* PKG-INFO
+recursive-include dashmat/core_modules/splunk/* *.py

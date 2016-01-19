@@ -1,0 +1,13 @@
+---
+
+modules:
+  components:
+    import_path: dashmat.core_modules.components.main:Components
+
+dashboards:
+  /number:
+    description: A number!
+    imports:
+      - [[Number], 'components']
+    layout:
+      <Number title="test" data={24} datasource="/data/components/number" every={1000} />

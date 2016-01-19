@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
-from python_dashing import VERSION
+from dashmat import VERSION
 
 setup(
-      name = "python-dashing"
+      name = "dashmat"
     , version = VERSION
     , packages = find_packages(exclude=['tests'])
     , include_package_data = True
@@ -33,12 +33,12 @@ setup(
 
     , entry_points =
       { 'console_scripts' :
-        [ 'python-dashing = python_dashing.executor:main'
+        [ 'dashmat = dashmat.executor:main'
         ]
       }
 
     # metadata for upload to PyPI
-    , url = "https://github.com/realestate-com-au/python-dashing"
+    , url = "https://github.com/realestate-com-au/dashmat"
     , author = "Stephen Moore"
     , author_email = "stephen.moore@rea-group.com"
     , description = "Application that reads yaml and serves up a pretty dashboard"
