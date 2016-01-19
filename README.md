@@ -13,6 +13,6 @@ Dev Setup
 
 ```
 pip install -e .
-PYTHON_DASHING_CONFIG=dashmat.yml.example dashmat run_checks
-PYTHON_DASHING_CONFIG=dashmat.yml.example dashmat serve
+DASHMAT_CONFIG=dashmat.yml.example dashmat run_checks
+DASHMAT_CONFIG=dashmat.yml.example dashmat serve
 ```
