@@ -16,7 +16,7 @@ log = logging.getLogger("dashmat.executor")
 class App(DelfickApp):
     cli_categories = ['dashmat']
     cli_description = "Application that reads YAML and serves up pretty dashboards"
-    cli_environment_defaults = {"DASHMAT_CONFIG", 'dashmat.yml')}
+    cli_environment_defaults = {"DASHMAT_CONFIG": ("--config", 'dashmat.yml')}
     cli_positional_replacements = [('--task', 'list_tasks'), ('--artifact', "")]
 
     def execute(self, cli_args, args_dict, extra_args, logging_handler):
