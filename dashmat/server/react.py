@@ -43,6 +43,7 @@ class ReactServer(object):
 
             , "webpack": "^1.12.9"
             , "whatwg-fetch": "^0.10.1"
+            , "es6-promise": "^3.0.2"
             }
 
     def prepare(self, npm_deps, compiled_static_folder):
