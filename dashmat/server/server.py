@@ -301,8 +301,8 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
                       plugins: [
                         new webpack.NoErrorsPlugin(),
                         new webpack.ProvidePlugin({{
-                          fetch: 'imports?this=>global!exports?global.fetch!whatwg-fetch'
-                          Promise: 'imports?this=>global!exports?global.Promise!es6-promise',
+                          fetch: 'imports?this=>global!exports?global.fetch!whatwg-fetch',
+                          Promise: 'imports?this=>global!exports?global.Promise!es6-promise'
                         }})
                       ]
                     }};
