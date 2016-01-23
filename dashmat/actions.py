@@ -90,8 +90,6 @@ def run_checks(collector):
     modules = collector.configuration["__active_modules__"]
     module_options = collector.configuration["modules"]
 
-    scheduler = Scheduler()
-
     for name, module in modules.items():
         if chosen is None or name == chosen:
             server = module.make_server(module_options[name].server_options)
@@ -103,7 +101,8 @@ def run_checks(collector):
     if dashmat.redis_host:
         datastore = RedisDataStore(redis.Redis(dashmat.redis_host))
 
-    scheduler.run(datastore, force=True)
+    scheduler = Scheduler(datastore)
+    scheduler.twitch(datastore, force=True)
 
 @an_action
 def list_npm_modules(collector, no_print=False):

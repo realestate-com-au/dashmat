@@ -45,27 +45,23 @@ class Server(object):
 
     def serve(self):
         http_server = HTTPServer(WSGIContainer(self.app))
-        http_server.listen(self.port, self.host)
-        log.info("Starting server on http://%s:%s", self.host, self.port)
+        scheduler = Scheduler(self.datastore)
+        if not self.without_checks:
+            for name, (module, server) in self.servers.items():
+                scheduler.register(module, server, name)
 
         try:
-            IOLoop.instance().start()
-        finally:
-            self.thread_stopper["finished"] = True
-
-    def start_checks(self, scheduler, thread_stopper):
-        first_run = True
-        while True:
-            if thread_stopper['finished']:
-                break
+            if not self.without_checks:
+                scheduler.start()
+            http_server.listen(self.port, self.host)
+            log.info("Starting server on http://%s:%s", self.host, self.port)
 
             try:
-                scheduler.run(self.datastore, force=first_run)
-            except Exception:
-                log.exception("Failed to run scheduler")
-
-            first_run = False
-            time.sleep(5)
+                IOLoop.instance().start()
+            finally:
+                self.thread_stopper["finished"] = True
+        finally:
+            scheduler.finish()
 
     @property
     def app(self):
@@ -83,15 +79,6 @@ class Server(object):
             self.servers = {}
             for name, module in self.modules.items():
                 self.servers[name] = (module, module.make_server(self.module_options[name].server_options))
-
-            scheduler = Scheduler()
-            if not self.without_checks:
-                for name, (module, server) in self.servers.items():
-                    scheduler.register(module, server, name)
-
-            checks_thread = threading.Thread(target=self.start_checks, args=(scheduler, self.thread_stopper, ))
-            checks_thread.daemon = True
-            checks_thread.start()
 
             # Register our own routes
             self.register_routes(self._app)
