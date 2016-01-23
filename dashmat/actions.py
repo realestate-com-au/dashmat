@@ -87,22 +87,23 @@ def run_checks(collector):
     if chosen in (None, "", NotSpecified):
         chosen = None
 
+    dashmat = collector.configuration["dashmat"]
     modules = collector.configuration["__active_modules__"]
+    config_root = collector.configuration["config_root"]
     module_options = collector.configuration["modules"]
+
+    datastore = JsonDataStore(os.path.join(config_root, "data.json"))
+    if dashmat.redis_host:
+        datastore = RedisDataStore(redis.Redis(dashmat.redis_host))
+
+    scheduler = Scheduler(datastore)
 
     for name, module in modules.items():
         if chosen is None or name == chosen:
             server = module.make_server(module_options[name].server_options)
             scheduler.register(module, server, name)
 
-    config_root = collector.configuration["config_root"]
-    dashmat = collector.configuration["dashmat"]
-    datastore = JsonDataStore(os.path.join(config_root, "data.json"))
-    if dashmat.redis_host:
-        datastore = RedisDataStore(redis.Redis(dashmat.redis_host))
-
-    scheduler = Scheduler(datastore)
-    scheduler.twitch(datastore, force=True)
+    scheduler.twitch(force=True)
 
 @an_action
 def list_npm_modules(collector, no_print=False):
