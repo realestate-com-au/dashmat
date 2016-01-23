@@ -36,7 +36,7 @@ class Dashboard(dictobj.Spec):
         )
 
     imports = dictobj.Field(
-          lambda: or_spec(string_spec(), listof(import_line_spec()))
+          lambda: or_spec(listof(string_spec()), listof(import_line_spec()))
         , help = "es6 imports for the dashboard"
         )
 

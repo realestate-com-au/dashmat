@@ -18,6 +18,7 @@ import logging
 import shutil
 import flask
 import time
+import six
 import os
 
 log = logging.getLogger("dashmat.server")
@@ -123,7 +124,9 @@ class Server(object):
             for route_name, func in server.routes:
                 view = make_view(func, module, name)
                 view.__name__ = "server_route_{0}_{1}".format(name, route_name)
-                app.route("/data/{0}/{1}".format(name, route_name))(view)
+                route = "/data/{0}/{1}".format(name, route_name)
+                log.info("Adding route %s", route)
+                app.route(route)(view)
 
         @app.route("/diagnostic/status/heartbeat", methods=['GET'])
         def heartbeat():
@@ -171,24 +174,27 @@ class Server(object):
                 enabled_modules = list(dashboard.enabled_modules)
                 for imprt in dashboard.imports:
                     if hasattr(imprt, "module_name"):
-                        enabled_modules.append(imprt.module_name)
+                        if isinstance(imprt.module_name, six.string_types):
+                            module = self.modules[imprt.module_name]
+                        elif isinstance(imprt.module_name, dict):
+                            module = imprt.module_name["import_path"]
+                        else:
+                            module = imprt.module_name
+                        enabled_modules.append(module)
 
                 def add_dependencies():
                     added = False
-                    for module_name in enabled_modules:
-                        if type(module_name) is dict:
-                            module_name = module_name['import_path']
-                        for dependency in self.modules[module_name].dependencies():
-                            if dependency not in enabled_modules:
-                                enabled_modules.append(dependency)
+                    for module in enabled_modules:
+                        for dependency in module.dependencies():
+                            if self.modules[dependency] not in enabled_modules:
+                                enabled_modules.append(self.modules[dependency])
                                 added = True
                     if added:
                         add_dependencies()
                 add_dependencies()
 
-                for module_name, module in self.modules.items():
-                    if module_name in enabled_modules:
-                        css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
+                for module in enabled_modules:
+                    css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
                 return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title, css=css)
             dashboard_view.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
             return dashboard_view
@@ -253,15 +259,16 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
     folders = [("dashmat.server", os.path.join(here, "static", "react"))]
     for name, module in modules.items():
         react_folder = pkg_resources.resource_filename(module.relative_to, "static/react")
-        if os.path.exists(react_folder):
-            if not do_change:
-                for root, dirs, files in os.walk(react_folder, followlinks=True):
-                    for fle in files:
-                        location = os.path.join(root, fle)
-                        if os.stat(location).st_mtime > js_mtime:
-                            do_change = True
-                            break
-            folders.append((module.relative_to, react_folder))
+        if (module.relative_to, react_folder) not in folders:
+            if os.path.exists(react_folder):
+                if not do_change:
+                    for root, dirs, files in os.walk(react_folder, followlinks=True):
+                        for fle in files:
+                            location = os.path.join(root, fle)
+                            if os.stat(location).st_mtime > js_mtime:
+                                do_change = True
+                                break
+                folders.append((module.relative_to, react_folder))
 
     if do_change:
         directory = None
@@ -269,7 +276,8 @@ def generate_dashboard_js(dashboard, react_server, compiled_static_folder, compi
             directory = tempfile.mkdtemp(dir=compiled_static_prep)
             shutil.copy(raw_location, os.path.join(directory, "{0}.js".format(filename)))
             for module_path, react_folder in folders:
-                shutil.copytree(react_folder, os.path.join(directory, module_path))
+                dest = os.path.join(directory, module_path)
+                shutil.copytree(react_folder, dest)
 
             with open(os.path.join(directory, "webpack.config.js"), 'w') as fle:
                 fle.write(dedent("""

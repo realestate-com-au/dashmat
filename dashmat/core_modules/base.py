@@ -1,7 +1,8 @@
-from dashmat.importer import import_module
-from dashmat.errors import MissingModule
+from importlib import import_module
+import importlib
 
 import logging
+import imp
 
 log = logging.getLogger("dashmat.core_modules.base")
 
@@ -18,10 +19,11 @@ class Module(object):
 
     @property
     def server_kls(self):
-        try:
-            return getattr(import_module(".".join([self.relative_to, "server"])), "Server")
-        except MissingModule:
-            return ServerBase
+        if importlib.util.find_spec(".".join([self.relative_to, "server"])):
+            module = import_module("{0}.server".format(self.relative_to))
+            if hasattr(module, "Server"):
+                return module.Server
+        return ServerBase
 
     @property
     def relative_to(self):

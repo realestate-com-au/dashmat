@@ -1,9 +1,13 @@
+from dashmat.option_spec.module_imports import module_import_spec
 from dashmat.formatter import MergedOptionStringFormatter
+from dashmat.core_modules.base import Module
 from dashmat.errors import UnknownModule
 
 from input_algorithms.spec_base import boolean, string_spec, formatted, listof, overridden, or_spec, set_options
 from input_algorithms.many_item_spec import many_item_formatted_spec
 from input_algorithms.dictobj import dictobj
+
+import six
 
 class import_line_spec(many_item_formatted_spec):
     value_name = "Import line"
@@ -17,7 +21,7 @@ class import_line_spec(many_item_formatted_spec):
 
 class ImportLine(dictobj.Spec):
     module_name = dictobj.Field(
-          lambda: or_spec(string_spec(), set_options(import_path=string_spec()))
+          lambda: or_spec(string_spec(), set_options(import_path=module_import_spec(Module)))
         , formatted = True
         , help = "The name of the module this import comes from"
         )
@@ -41,10 +45,14 @@ class ImportLine(dictobj.Spec):
         if type(module_name) is dict:
             module_name = self.module_name['import_path']
 
-        if module_name not in modules:
-            raise UnknownModule(module=module_name, available=list(modules.keys()))
+        if isinstance(module_name, six.string_types):
+            if module_name not in modules:
+                raise UnknownModule(module=module_name, available=list(modules.keys()))
+            module = modules[module_name]
+        else:
+            module = module_name
 
         imports = "{{{0}}}".format(", ".join(self.imports))
-        relative_to = modules[module_name].relative_to
+        relative_to = module.relative_to
         return 'import {0} from "/modules/{1}/{2}"'.format(imports, relative_to, self.import_from)
 

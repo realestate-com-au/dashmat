@@ -2,9 +2,11 @@
 Collects then parses configuration files and verifies that they are valid.
 """
 
+from dashmat.option_spec.module_imports import module_import_spec
 from dashmat.option_spec.dashmat_specs import DashMatConverters
 from dashmat.errors import BadConfiguration, BadYaml, BadImport
-from dashmat.importer import import_module
+from dashmat.option_spec.dashmat_specs import ModuleOptions
+from dashmat.core_modules.base import Module
 
 from input_algorithms.dictobj import dictobj
 from input_algorithms.meta import Meta
@@ -62,9 +64,9 @@ class Collector(CollectorBase):
 
     def extra_configuration_collection(self, configuration):
         """Hook to do any extra configuration collection or converter registration"""
-        imported = {}
-        registered = {}
-        active_modules = {}
+        configuration["__imported__"] = {}
+        configuration["__registered__"] = {}
+        configuration["__active_modules__"] = {}
 
         def make_converter(name, spec):
             def converter(p, v):
@@ -76,11 +78,22 @@ class Collector(CollectorBase):
         configuration.install_converters(DashMatConverters(), make_converter)
 
         if "modules" in configuration:
-            for module_name, module_options in configuration["modules"].items():
+            for module_name, module_options in list(configuration["modules"].items()):
                 if "import_path" in module_options:
-                    self.activate_module(module_name, module_options["import_path"], active_modules, registered, imported)
+                    module = module_import_spec(Module).normalise(Meta(configuration, []).at("modules").at(module_name), module_options["import_path"])
+                    import_path = "{0}:{1}".format(module.module_path, module.__name__)
+                    self.activate_module(module_name, import_path, module, configuration)
+                    configuration[["modules", module_name, "import_path"]] = module
 
-        for (_, thing), spec in sorted(registered.items()):
+    def extra_prepare_after_activation(self, configuration, args_dict):
+        for dashboard in configuration["dashboards"].values():
+            for imprt in dashboard.imports:
+                if hasattr(imprt, "module_name") and type(imprt.module_name) is dict:
+                    module = imprt.module_name["import_path"]
+                    import_path = "{0}:{1}".format(module.module_path, module.__name__)
+                    self.activate_module(import_path, import_path, module, configuration)
+
+        for (_, thing), spec in sorted(configuration["__registered__"].as_dict().items()):
             def make_converter(thing, spec):
                 def converter(p, v):
                     log.info("Converting %s", p)
@@ -91,54 +104,25 @@ class Collector(CollectorBase):
             converter = make_converter(thing, spec)
             configuration.add_converter(Converter(convert=converter, convert_path=[thing]))
 
-        configuration['__imported__'] = imported
-        configuration['__registered__'] = list(registered.values())
-        configuration['__active_modules__'] = active_modules
-
-    def extra_prepare_after_activation(self, configuration, args_dict):
+    def activate_module(self, name, import_path, module, configuration):
         imported = configuration['__imported__']
-        registered = dict((name, name) for name in configuration['__registered__'])
-        active_modules = configuration['__active_modules__']
+        registered = configuration["__registered__"]
         module_options = configuration["modules"]
+        active_modules = configuration['__active_modules__']
 
-        options = namedtuple("Options", ["import_path", "server_options"])
-        for dashboard in configuration["dashboards"].values():
-            for imprt in dashboard.imports:
-                if hasattr(imprt, "module_name") and type(imprt.module_name) is dict:
-                    module_name = imprt.module_name["import_path"]
-                    if module_name not in active_modules:
-                        self.activate_module(module_name, module_name, active_modules, registered, imported)
-                        if module_name not in module_options:
-                            module_options[module_name] = options(module_name, {})
-        configuration['__registered__'] = list(registered.values())
-
-        def find_deps():
-            added = False
-            for name, module in list(active_modules.items()):
-                for dependency in module.dependencies():
-                    if dependency not in active_modules:
-                        added = True
-                        active_modules[dependency] = imported[dependency](dependency, dependency)
-                        if dependency not in module_options:
-                            module_options[dependency] = options(dependency, {})
-            if added:
-                find_deps()
-        find_deps()
-
-    def activate_module(self, name, import_path, active_modules, registered, imported):
         if import_path not in imported:
-            import_module_path, import_class = import_path.split(":")
-            module = import_module(import_module_path)
+            imported[import_path] = module
+            configuration["__registered__"].update(imported[import_path].register_configuration())
 
-            if not hasattr(module, import_class):
-                raise BadImport("Failed to find the specified class", wanted=import_class, module=module, available=dir(module))
+        if import_path not in module_options and name == import_path:
+            module_options[import_path] = ModuleOptions(import_path=import_path, server_options={}, active=True)
 
-            imported[import_path] = getattr(module, import_class)
-            registered.update(imported[import_path].register_configuration())
-            for dependency in imported[import_path].dependencies():
-                self.activate_module(None, dependency, active_modules, registered, imported)
+        for dependency in imported[import_path].dependencies():
+            if dependency not in imported:
+                m = module_import_spec(Module).normalise(Meta(configuration, []), dependency)
+                ip = "{0}:{1}".format(m.module_path, m.__name__)
+                self.activate_module(ip, ip, m, configuration)
 
-        # Instantiate the module for this instance of it
-        if name is not None:
+        if name not in active_modules:
             active_modules[name] = imported[import_path](name, import_path)
 

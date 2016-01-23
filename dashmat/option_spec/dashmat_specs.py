@@ -4,8 +4,10 @@ Here we define the yaml specification for dashmat options
 The specifications are responsible for sanitation, validation and normalisation.
 """
 
+from dashmat.option_spec.module_imports import module_import_spec
 from dashmat.formatter import MergedOptionStringFormatter
 from dashmat.option_spec.dashboard import Dashboard
+from dashmat.core_modules.base import Module
 
 from input_algorithms.validators import regexed
 from input_algorithms.spec_base import (
@@ -130,7 +132,7 @@ class ModuleOptions(dictobj.Spec):
         )
 
     import_path = dictobj.Field(
-          valid_string_spec(valid_import_name)
+          lambda: module_import_spec(Module)
         , formatted = True
         , wrapper = required
         , help = "Import path to the module to load"
