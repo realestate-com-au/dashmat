@@ -118,10 +118,12 @@ class Collector(CollectorBase):
             module_options[import_path] = ModuleOptions(import_path=import_path, server_options={}, active=True)
 
         for dependency in imported[import_path].dependencies():
-            if dependency not in imported:
+            if dependency in imported:
+                m = imported[dependency]
+            else:
                 m = module_import_spec(Module).normalise(Meta(configuration, []), dependency)
-                ip = "{0}:{1}".format(m.module_path, m.__name__)
-                self.activate_module(ip, ip, m, configuration)
+            ip = "{0}:{1}".format(m.module_path, m.__name__)
+            self.activate_module(ip, ip, m, configuration)
 
         if name not in active_modules:
             active_modules[name] = imported[import_path](name, import_path)
