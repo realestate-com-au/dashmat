@@ -52,6 +52,10 @@ class ImportLine(dictobj.Spec):
         else:
             module = module_name
 
+        if type(module) is type:
+            import_path = "{0}:{1}".format(module.module_path, module.__name__)
+            module = module(import_path, import_path)
+
         imports = "{{{0}}}".format(", ".join(self.imports))
         relative_to = module.relative_to
         return 'import {0} from "/modules/{1}/{2}"'.format(imports, relative_to, self.import_from)
