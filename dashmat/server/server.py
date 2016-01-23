@@ -18,6 +18,7 @@ import logging
 import shutil
 import flask
 import time
+import json
 import six
 import os
 
@@ -177,9 +178,17 @@ class Server(object):
                         add_dependencies()
                 add_dependencies()
 
+                first_state = {}
                 for module in enabled_modules:
                     css.extend(["/static/css/{0}/{1}".format(module.relative_to, c) for c in module.css()])
-                return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title, css=css)
+
+                for name, (module, server) in self.servers.items():
+                    for route_name, func in server.routes:
+                        route = "/data/{0}/{1}".format(name, route_name)
+                        ds = self.datastore.prefixed("{0}-{1}".format(module.relative_to, name))
+                        first_state[route] = func(ds)
+
+                return render_template('index.html', dashboardjs="/static/dashboards/{0}".format(path), title=title, css=css, first_state=json.dumps(first_state))
             dashboard_view.__name__ = "dashboard_{0}".format(path.replace("_", "__").replace("/", "_"))
             return dashboard_view
 

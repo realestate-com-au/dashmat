@@ -4,6 +4,9 @@
     {% for extra_css in css %}
     <link rel="stylesheet" type="text/css" href="{{ extra_css }}" >
     {% endfor %}
+    <script>
+        window.firstState = {{ first_state|safe }};
+    </script>
     <script src="{{ dashboardjs }}"></script>
 </head>
 <body>

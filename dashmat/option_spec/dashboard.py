@@ -64,7 +64,7 @@ class Dashboard(dictobj.Spec):
             class Dashboard extends Component {{
                 constructor(props) {{
                     super(props);
-                    this.state = {{data: {{}}}};
+                    this.state = window.firstState;
                     this.sources = {{}}
                 }}
 
