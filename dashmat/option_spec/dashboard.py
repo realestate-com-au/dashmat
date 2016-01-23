@@ -72,7 +72,7 @@ class Dashboard(dictobj.Spec):
                     fetch(url)
                         .then(data => data.json())
                         .then(data => {{
-                            let state = {{[url]: data}}
+                            let state = {{[url]: data["value"]}}
                             this.setState(state);
                         }})
                 }}

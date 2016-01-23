@@ -15,5 +15,5 @@ class Server(ServerBase):
 		return datastore.retrieve("number")
 
 	def make_number(self, time_since_last_check):
-		yield "number", str(int(random.random() * 100))
+		yield "number", int(random.random() * 100)
 

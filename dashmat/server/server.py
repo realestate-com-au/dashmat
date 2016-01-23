@@ -101,10 +101,7 @@ class Server(object):
             def wrapper(*args, **kwargs):
                 ds = self.datastore.prefixed("{0}-{1}".format(module.relative_to, module_name))
                 res = func(ds, *args, **kwargs)
-                if type(res) is dict:
-                    return flask.jsonify(res)
-                else:
-                    return res
+                return flask.jsonify({"value": res})
             return wrapper
 
         for name, (module, server) in self.servers.items():
