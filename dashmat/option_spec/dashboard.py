@@ -62,6 +62,31 @@ class Dashboard(dictobj.Spec):
             {imports}
 
             class Dashboard extends Component {{
+                constructor(props) {{
+                    super(props);
+                    this.state = {{data: {{}}}};
+                    this.sources = {{}}
+                }}
+
+                refresh(url) {{
+                    fetch(url)
+                        .then(data => data.json())
+                        .then(data => {{
+                            let state = {{[url]: data}}
+                            this.setState(state);
+                        }})
+                }}
+
+                datasource(url, interval) {{
+                    if (this.sources[url] === undefined) {{
+                        this.sources[url] = true;
+                        interval = interval || 15000;
+                        setInterval(this.refresh.bind(this), interval, url);
+                        this.refresh(url)
+                    }}
+                    return this.state[url];
+                }}
+
                 render() {{
                     return (
                         <div className={{styles.dashboard}}>

@@ -10,4 +10,4 @@ dashboards:
     imports:
       - [[Number], 'components']
     layout:
-      <Number title="test" data={24} datasource="/data/components/number" every={1000} />
+      <Number title="test" data={this.datasource("/data/components/number")} />
