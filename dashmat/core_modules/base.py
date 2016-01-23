@@ -3,6 +3,7 @@ import importlib
 
 import logging
 import imp
+import six
 
 log = logging.getLogger("dashmat.core_modules.base")
 
@@ -70,25 +71,79 @@ class Module(object):
         """
         return {}
 
+class Route(object):
+    def __init__(self, retrieve=None, prepend=None):
+        self.prepend = prepend
+        self.retrieve = retrieve
+        self.dashmat_route = self
+
+    def __call__(self, func):
+        self.retrieve = func
+        func.dashmat_route = self
+        return func
+
+    def data_retriever(self, datastore):
+        if isinstance(self.retrieve, six.string_types):
+            data = datastore.retrieve(self.retrieve)
+        elif callable(self.retrieve):
+            data = self.retrieve(self.instance, datastore)
+        else:
+            data = self.retrieve
+
+        if self.prepend:
+            result = {}
+            parts = reversed(self.prepend.split("."))[:-1]
+            while parts:
+                result = {parts.pop(0): result}
+            return {self.prepend.split('.')[-1]: data}
+        else:
+            return data
+
+    def route_tuple(self, instance, name):
+        self.instance = instance
+        return name, self.data_retriever
+
+class Checker(object):
+    dashmat_check = True
+
+    def __init__(self, func, every):
+        self.func = func
+        self.every = every
+
+    def check_tuple(self, instance, name):
+        return self.every, lambda *args, **kwargs: self.func(instance, *args, **kwargs)
+
 class ServerBase(object):
+    Route = Route
+
     def __init__(self, module, **kwargs):
         self.module = module
         self.setup(**kwargs)
 
-    @property
-    def redis(self):
-        if not getattr(self, "_redis", None):
-            self._redis = redis.Redis(self.redis_host)
-        return self._redis
-
     def setup(self, **kwargs):
         pass
 
+    @classmethod
+    def check_every(kls, every):
+        """Decorator for registering a check to run every `every` (cronspec)"""
+        def wrapper(func):
+            func.dashmat_checker = Checker(func, every)
+            return func
+        return wrapper
+
     @property
     def routes(self):
-        return []
+        for attr in dir(self):
+            if not attr.startswith("_") and attr not in dir(ServerBase):
+                val = getattr(self, attr)
+                if getattr(val, "dashmat_route", False) and hasattr(val.dashmat_route.__class__, 'route_tuple'):
+                    yield val.dashmat_route.route_tuple(self, attr)
 
     @property
     def register_checks(self):
-        return []
+        for attr in dir(self):
+            if not attr.startswith("_") and attr not in dir(ServerBase):
+                val = getattr(self, attr)
+                if getattr(val, "dashmat_check", False) and hasattr(val.dashmat_check.__class__, "check_tuple"):
+                    yield val.dashmat_check.check_tuple(self, attr)
 

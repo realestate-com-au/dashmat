@@ -1,5 +1,6 @@
 from dashmat.server.react import ReactServer
 from dashmat.scheduler import Scheduler
+from dashmat.errors import DashMatError
 
 from tornado.httpserver import HTTPServer
 from tornado.wsgi import WSGIContainer
@@ -106,12 +107,15 @@ class Server(object):
             return wrapper
 
         for name, (module, server) in self.servers.items():
-            for route_name, func in server.routes:
-                view = make_view(func, module, name)
-                view.__name__ = "server_route_{0}_{1}".format(name, route_name)
-                route = "/data/{0}/{1}".format(name, route_name)
-                log.info("Adding route %s", route)
-                app.route(route)(view)
+            try:
+                for route_name, func in server.routes:
+                    view = make_view(func, module, name)
+                    view.__name__ = "server_route_{0}_{1}".format(name, route_name)
+                    route = "/data/{0}/{1}".format(name, route_name)
+                    log.info("Adding route %s", route)
+                    app.route(route)(view)
+            except Exception as error:
+                raise DashMatError("Failed to setup routes for a server", server=server, error=error)
 
         @app.route("/diagnostic/status/heartbeat", methods=['GET'])
         def heartbeat():
