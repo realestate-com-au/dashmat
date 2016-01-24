@@ -46,13 +46,16 @@ if [[ ! -d "$DIR/sphinx/venv" ]]; then
   TMP_DIR="$DIR/sphinx/venv"
   if [[ ! -d $TMP_DIR ]]; then
     opts=""
-    if [[ -f /usr/bin/python2.7 ]]; then
+    if ! which python3; then
+      echo "Please install python3"
+      exit 1
+    else
       question="
 import sys
-if sys.version.startswith('2.7'): sys.exit(1)
+if sys.version.startswith(\"3\"): sys.exit(1)
       "
       if python -c "$question"; then
-        opts=" -p /usr/bin/python2.7"
+        opts=" -p $(which python3)"
       fi
     fi
 
@@ -64,6 +67,7 @@ if sys.version.startswith('2.7'): sys.exit(1)
   fi
 
   source $TMP_DIR/bin/activate
+  pip install pip --upgrade
   pip install -r sphinx/requirements.txt
   cd $DIR/..
   pip install -e .
