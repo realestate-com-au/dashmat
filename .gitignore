@@ -13,3 +13,5 @@ docs/sphinx/venv
 /node_modules/
 js-build/
 /dashmat.yml
+docs/sphinx/_build
+docs/sphinx/venv
