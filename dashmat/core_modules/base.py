@@ -1,6 +1,7 @@
 from importlib import import_module
 import importlib
 
+from functools import wraps
 import logging
 import imp
 import six
@@ -110,7 +111,7 @@ class Checker(object):
         self.dashmat_check = self
 
     def check_tuple(self, instance, name):
-        return self.every, lambda *args, **kwargs: self.func(instance, *args, **kwargs)
+        return self.every, wraps(self.func)(lambda *args, **kwargs: self.func(instance, *args, **kwargs))
 
 class ServerBase(object):
     Route = Route
