@@ -104,11 +104,10 @@ class Route(object):
         return name, self.data_retriever
 
 class Checker(object):
-    dashmat_check = True
-
     def __init__(self, func, every):
         self.func = func
         self.every = every
+        self.dashmat_check = self
 
     def check_tuple(self, instance, name):
         return self.every, lambda *args, **kwargs: self.func(instance, *args, **kwargs)
@@ -127,7 +126,7 @@ class ServerBase(object):
     def check_every(kls, every):
         """Decorator for registering a check to run every `every` (cronspec)"""
         def wrapper(func):
-            func.dashmat_checker = Checker(func, every)
+            func.dashmat_check = Checker(func, every)
             return func
         return wrapper
 
