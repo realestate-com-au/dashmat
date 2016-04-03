@@ -26,22 +26,22 @@ class ReactServer(object):
 
     def default_npm_deps(self):
         return {
-              "babel-core": "^6.3.17"
-            , "babel-loader": "^6.2.0"
+              "babel-core": "^6.4.0"
+            , "babel-loader": "^6.2.1"
             , "babel-polyfill": "^6.3.14"
             , "babel-preset-react": "^6.3.13"
             , "babel-preset-es2015": "^6.3.13"
             , "babel-plugin-transform-object-rest-spread": "^6.3.13"
 
-            , "css-loader": "^0.23.0"
+            , "css-loader": "^0.23.1"
             , "style-loader": "^0.13.0"
             , "imports-loader": "^0.6.5"
             , "exports-loader": "^0.6.2"
 
-            , "react": "^0.14.3"
-            , "react-dom": "^0.14.3"
+            , "react": "^0.14.6"
+            , "react-dom": "^0.14.6"
 
-            , "webpack": "^1.12.9"
+            , "webpack": "^1.12.11"
             , "whatwg-fetch": "^0.10.1"
             , "es6-promise": "^3.0.2"
             }
