@@ -3,11 +3,16 @@
 modules:
   components:
     import_path: dashmat.core_modules.components.main:Components
+  status:
+    import_path: dashmat.core_modules.status.main:Status
 
 dashboards:
   /number:
     description: A number!
     imports:
+      - [[Status], 'status']
       - [[Number], 'components']
-    layout:
+    layout: |
+      <Status lastUpdated={this.last_updated_time()} />
       <Number title="test" data={this.datasource("/data/components/number")} />
+

@@ -87,6 +87,22 @@ class Dashboard(dictobj.Spec):
                     return this.state[url];
                 }}
 
+                get_heartbeat(url) {{
+                    fetch(url)
+                        .then(data => {{
+                            this.setState({{"__heartbeat__": new Date()}})
+                        }})
+                }}
+
+                last_updated_time() {{
+                    if (this.sources["__heartbeat__"] == undefined) {{
+                        this.sources["__heartbeat__"] = true;
+                        setInterval(this.get_heartbeat.bind(this), 30000, "/diagnostic/status/heartbeat");
+                        this.state.__heartbeat__ = new Date();
+                    }}
+                    return this.state["__heartbeat__"];
+                }};
+
                 render() {{
                     return (
                         <div className={{styles.dashboard}}>
