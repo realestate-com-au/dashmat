@@ -46,16 +46,14 @@ if [[ ! -d "$DIR/sphinx/venv" ]]; then
   TMP_DIR="$DIR/sphinx/venv"
   if [[ ! -d $TMP_DIR ]]; then
     opts=""
-    if ! which python3; then
-      echo "Please install python3"
-      exit 1
-    else
+    python_exe=$(which python3)
+    if [[ -f $python_exe ]]; then
       question="
 import sys
-if sys.version.startswith(\"3\"): sys.exit(1)
+if sys.version.startswith('3'): sys.exit(1)
       "
       if python -c "$question"; then
-        opts=" -p $(which python3)"
+        opts=" -p $python_exe"
       fi
     fi
 
@@ -67,10 +65,7 @@ if sys.version.startswith(\"3\"): sys.exit(1)
   fi
 
   source $TMP_DIR/bin/activate
-  pip install pip --upgrade
   pip install -r sphinx/requirements.txt
-  cd $DIR/..
-  pip install -e .
 fi
 
 # use with --clean if you change anything in sphinx
